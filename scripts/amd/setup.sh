@@ -1,1 +1,1 @@
-pip3 install regex sacremoses filelock transformers gitpython rouge_score sacrebleu
+pip3 install regex sacremoses filelock transformers gitpython rouge_score sacrebleu deepspeed fairscale
