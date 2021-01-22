@@ -1,3 +1,13 @@
+# use bash
+SCRIPT_PATH=$(realpath $0)
+SCRIPT_DIR_PATH=$(dirname $SCRIPT_PATH)
+ROOT_DIR=$(dirname $SCRIPT_DIR_PATH)
+if [ ! "$BASH_VERSION" ]; then
+    echo "Using bash to run this script $0" 1>&2
+    exec bash $SCRIPT_PATH "$@"
+    exit 1
+fi
+
 cd examples/seq2seq
 
 rm -r output_dir
@@ -11,7 +21,8 @@ PYTHONPATH=../../src USE_TF=0 python -m torch.distributed.launch \
     --max_target_length 128 --num_train_epochs 1 --overwrite_output_dir --per_device_eval_batch_size $BS \
     --per_device_train_batch_size $BS --predict_with_generate --eval_steps 25000 --sortish_sampler \
     --task translation_en_to_ro --test_max_target_length 128 --val_max_target_length 128 --warmup_steps 500 \
-    --n_train 2000 --n_val 500
+    --n_train 2000 --n_val 500 \
+    2>&1 | tee log_baseline.txt
 
 export BS=52
 echo "w/ --fp16"
@@ -22,7 +33,8 @@ PYTHONPATH=../../src USE_TF=0 python -m torch.distributed.launch \
     --max_target_length 128 --num_train_epochs 1 --overwrite_output_dir --per_device_eval_batch_size $BS \
     --per_device_train_batch_size $BS --predict_with_generate --eval_steps 25000 --sortish_sampler \
     --task translation_en_to_ro --test_max_target_length 128 --val_max_target_length 128 --warmup_steps 500 \
-    --n_train 2000 --n_val 500 --fp16
+    --n_train 2000 --n_val 500 --fp16 \
+    2>&1 | tee log_fp16.txt
 
 export BS=54
 echo "w/ --sharded_ddp"
@@ -33,7 +45,8 @@ PYTHONPATH=../../src USE_TF=0 python -m torch.distributed.launch \
     --max_target_length 128 --num_train_epochs 1 --overwrite_output_dir --per_device_eval_batch_size $BS \
     --per_device_train_batch_size $BS --predict_with_generate --eval_steps 25000 --sortish_sampler \
     --task translation_en_to_ro --test_max_target_length 128 --val_max_target_length 128 --warmup_steps 500 \
-    --n_train 2000 --n_val 500 --sharded_ddp
+    --n_train 2000 --n_val 500 --sharded_ddp \
+    2>&1 | tee log_sharded_ddp.txt
 
 export BS=60
 echo "w/ --sharded_ddp --fp16"
@@ -44,7 +57,8 @@ PYTHONPATH=../../src USE_TF=0 python -m torch.distributed.launch \
     --max_target_length 128 --num_train_epochs 1 --overwrite_output_dir --per_device_eval_batch_size $BS \
     --per_device_train_batch_size $BS --predict_with_generate --eval_steps 25000 --sortish_sampler \
     --task translation_en_to_ro --test_max_target_length 128 --val_max_target_length 128 --warmup_steps 500 \
-    --n_train 2000 --n_val 500 --sharded_ddp --fp16
+    --n_train 2000 --n_val 500 --sharded_ddp --fp16 \
+    2>&1 | tee log_sharded_ddp_fp16.txt
 
 export BS=80
 echo "w/ --deepspeed ds_config.json (stage 2 w/o cpu offloading)"
@@ -55,7 +69,8 @@ PYTHONPATH=../../src USE_TF=0 python -m torch.distributed.launch \
     --max_target_length 128 --num_train_epochs 1 --overwrite_output_dir --per_device_eval_batch_size $BS \
     --per_device_train_batch_size $BS --predict_with_generate --eval_steps 25000 --sortish_sampler \
     --task translation_en_to_ro --test_max_target_length 128 --val_max_target_length 128 --warmup_steps 500 \
-    --n_train 2000 --n_val 500 --deepspeed "ds_config_cpu_offload_off.json"
+    --n_train 2000 --n_val 500 --deepspeed "ds_config_cpu_offload_off.json" \
+    2>&1 | tee log_deepspeed_cpu_offload_off.txt
 
 export BS=86
 echo "w/ --deepspeed ds_config.json (stage 2 w/ cpu offloading)"
@@ -66,4 +81,5 @@ PYTHONPATH=../../src USE_TF=0 python -m torch.distributed.launch \
     --max_target_length 128 --num_train_epochs 1 --overwrite_output_dir --per_device_eval_batch_size $BS \
     --per_device_train_batch_size $BS --predict_with_generate --eval_steps 25000 --sortish_sampler \
     --task translation_en_to_ro --test_max_target_length 128 --val_max_target_length 128 --warmup_steps 500 \
-    --n_train 2000 --n_val 500 --deepspeed "ds_config_cpu_offload_on.json"
+    --n_train 2000 --n_val 500 --deepspeed "ds_config_cpu_offload_on.json" \
+    2>&1 | tee log_deepspeed_cpu_offload_on.txt
