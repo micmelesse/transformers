@@ -253,10 +253,43 @@ class T5DenseReluDense(nn.Module):
         self.dropout = nn.Dropout(config.dropout_rate)
 
     def forward(self, hidden_states):
+        tensor_name = "modeling_t5:T5DenseReluDense:hidden_states"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
         hidden_states = self.wi(hidden_states)
+        tensor_name = "modeling_t5:T5DenseReluDense:hidden_states after self.wi"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
         hidden_states = F.relu(hidden_states)
+        tensor_name = "modeling_t5:T5DenseReluDense:hidden_states after F.relu"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
         hidden_states = self.dropout(hidden_states)
+        tensor_name = "modeling_t5:T5DenseReluDense:hidden_states after self.dropout"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
+        torch.save(hidden_states,"hidden_states_before_Linear_wo.pt")
+        torch.save(self.wo.weight,"Linear_wo_weight.pt")
         hidden_states = self.wo(hidden_states)
+        tensor_name = "modeling_t5:T5DenseReluDense:hidden_states after self.wo"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            # print(hidden_states)
+            exit()
+        else:
+            print(tensor_name, "True")
         return hidden_states
 
 
@@ -294,9 +327,37 @@ class T5LayerFF(nn.Module):
         self.dropout = nn.Dropout(config.dropout_rate)
 
     def forward(self, hidden_states):
+        tensor_name = "modeling_t5:T5LayerFF:hidden_states"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
+
         forwarded_states = self.layer_norm(hidden_states)
+        tensor_name = "modeling_t5:T5LayerFF:forwarded_states after layer_norm"
+        if not torch.isfinite(forwarded_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
+
         forwarded_states = self.DenseReluDense(forwarded_states)
+        print(self.DenseReluDense)
+        tensor_name = "modeling_t5:T5LayerFF:forwarded_states after DenseReluDense"
+        if not torch.isfinite(forwarded_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
+
         hidden_states = hidden_states + self.dropout(forwarded_states)
+        tensor_name = "modeling_t5:T5LayerFF:hidden_states 2"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
         return hidden_states
 
 
@@ -536,6 +597,14 @@ class T5LayerSelfAttention(nn.Module):
         output_attentions=False,
     ):
         normed_hidden_states = self.layer_norm(hidden_states)
+
+        tensor_name = "modeling_t5:T5LayerSelfAttention:normed_hidden_states"
+        if not torch.isfinite(normed_hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
+
         attention_output = self.SelfAttention(
             normed_hidden_states,
             mask=attention_mask,
@@ -546,7 +615,21 @@ class T5LayerSelfAttention(nn.Module):
             output_attentions=output_attentions,
         )
         hidden_states = hidden_states + self.dropout(attention_output[0])
+        tensor_name = "modeling_t5:T5LayerSelfAttention:hidden_states"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
         outputs = (hidden_states,) + attention_output[1:]  # add attentions if we output them
+        for i, o in enumerate(attention_output):
+            tensor_name = "modeling_t5:T5LayerSelfAttention:attention_output" + str(i)
+            if o is not None:
+                if not torch.isfinite(o).all():
+                    print(tensor_name, "False")
+                    exit()
+                else:
+                    print(tensor_name, "True")
         return outputs
 
 
@@ -628,6 +711,13 @@ class T5Block(nn.Module):
         else:
             self_attn_past_key_value, cross_attn_past_key_value = None, None
 
+        tensor_name = "modeling_t5:T5Block:hidden_states"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
+
         self_attention_outputs = self.layer[0](
             hidden_states,
             attention_mask=attention_mask,
@@ -639,6 +729,12 @@ class T5Block(nn.Module):
         )
         hidden_states, present_key_value_state = self_attention_outputs[:2]
         attention_outputs = self_attention_outputs[2:]  # Keep self-attention outputs and relative position weights
+        tensor_name = "modeling_t5:T5Block:hidden_states 2"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
 
         # clamp inf values to enable fp16 training
         if torch.isinf(hidden_states).any():
@@ -653,6 +749,13 @@ class T5Block(nn.Module):
                 query_length = present_key_value_state[0].shape[2]
             else:
                 query_length = None
+
+            # tensor_name = "modeling_t5:T5Block:hidden_states 3"
+            # if not torch.isfinite(hidden_states).all():
+            #     print(tensor_name, "False")
+            #     exit()
+            # else:
+            #     print(tensor_name, "True")
 
             cross_attention_outputs = self.layer[1](
                 hidden_states,
@@ -669,6 +772,12 @@ class T5Block(nn.Module):
             if torch.isinf(hidden_states).any():
                 clamp_value = torch.finfo(hidden_states.dtype).max - 1000
                 hidden_states = torch.clamp(hidden_states, min=-clamp_value, max=clamp_value)
+            # tensor_name = "modeling_t5:T5Block:hidden_states 4"
+            # if not torch.isfinite(hidden_states).all():
+            #     print(tensor_name, "False")
+            #     exit()
+            # else:
+            #     print(tensor_name, "True")
 
             # Combine self attn and cross attn key value states
             if present_key_value_state is not None:
@@ -677,8 +786,24 @@ class T5Block(nn.Module):
             # Keep cross-attention outputs and relative position weights
             attention_outputs = attention_outputs + cross_attention_outputs[2:]
 
+        tensor_name = "modeling_t5:T5Block:hidden_states 4"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
+        
         # Apply Feed Forward layer
+        # print(self.layer)
         hidden_states = self.layer[-1](hidden_states)
+
+        tensor_name = "modeling_t5:T5Block:hidden_states 5"
+        if not torch.isfinite(hidden_states).all():
+            print(tensor_name, "False")
+            exit()
+        else:
+            print(tensor_name, "True")
+
         if torch.isinf(hidden_states).any():
             clamp_value = torch.finfo(hidden_states.dtype).max - 1000
             hidden_states = torch.clamp(hidden_states, min=-clamp_value, max=clamp_value)
@@ -933,6 +1058,7 @@ class T5Stack(T5PreTrainedModel):
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
 
+            print("modeling_t5:T5Stack:hidden_states", torch.isfinite(hidden_states).all())
             layer_outputs = layer_module(
                 hidden_states,
                 attention_mask=extended_attention_mask,
@@ -945,14 +1071,20 @@ class T5Stack(T5PreTrainedModel):
                 use_cache=use_cache,
                 output_attentions=output_attentions,
             )
+
             # layer_outputs is a tuple with:
             # hidden-states, key-value-states, (self-attention weights), (self-attention position bias), (cross-attention weights), (cross-attention position bias)
             hidden_states, present_key_value_state = layer_outputs[:2]
+            if not torch.isfinite(hidden_states).all():
+                print("modeling_t5:T5Stack:hidden_states 2")
+                exit()
+            # print("modeling_t5:T5Stack:present_key_value_state", torch.isfinite(present_key_value_state).all())
 
             # We share the position biases between the layers - the first layer store them
             # layer_outputs = hidden-states, key-value-states (self-attention weights),
             # (self-attention position bias), (cross-attention weights), (cross-attention position bias)
             position_bias = layer_outputs[2]
+            print("modeling_t5:T5Stack:position_bias", torch.isfinite(position_bias).all())
             if self.is_decoder and encoder_hidden_states is not None:
                 encoder_decoder_position_bias = layer_outputs[4 if output_attentions else 3]
             # append next layer key value states
@@ -961,6 +1093,7 @@ class T5Stack(T5PreTrainedModel):
 
             if output_attentions:
                 all_attentions = all_attentions + (layer_outputs[3],)
+                print("modeling_t5:T5Stack:all_attentions", torch.isfinite(all_attentions).all())
                 if self.is_decoder:
                     all_cross_attentions = all_cross_attentions + (layer_outputs[5],)
 
@@ -971,7 +1104,9 @@ class T5Stack(T5PreTrainedModel):
                         hidden_states = hidden_states.to("cuda:" + str(k + 1))
 
         hidden_states = self.final_layer_norm(hidden_states)
+        print("modeling_t5:T5Stack:hidden_states_layer_norm", torch.isfinite(hidden_states).all())
         hidden_states = self.dropout(hidden_states)
+        print("modeling_t5:T5Stack:hidden_states_dropout", torch.isfinite(hidden_states).all())
 
         # Add last layer
         if output_hidden_states:
@@ -1447,6 +1582,9 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
         use_cache = use_cache if use_cache is not None else self.config.use_cache
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
+        print("modeling_t5:input_ids", torch.isfinite(input_ids).all())
+        print("modeling_t5:attention_mask", torch.isfinite(attention_mask).all())
+
         # Encode if needed (training, first prediction pass)
         if encoder_outputs is None:
             # Convert encoder inputs in embeddings if needed
@@ -1467,6 +1605,7 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
             )
 
         hidden_states = encoder_outputs[0]
+        print("modeling_t5:hidden_states", torch.isfinite(hidden_states).all())
 
         if self.model_parallel:
             torch.cuda.set_device(self.decoder.first_device)
@@ -1511,6 +1650,7 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
         )
 
         sequence_output = decoder_outputs[0]
+        print("modeling_t5:sequence_output", torch.isfinite(sequence_output).all())
 
         # Set device for model parallelism
         if self.model_parallel:
@@ -1524,12 +1664,15 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
             sequence_output = sequence_output * (self.model_dim ** -0.5)
 
         lm_logits = self.lm_head(sequence_output)
+        print("modeling_t5:lm_logits", torch.isfinite(lm_logits).all())
 
         loss = None
         if labels is not None:
             loss_fct = CrossEntropyLoss(ignore_index=-100)
             loss = loss_fct(lm_logits.view(-1, lm_logits.size(-1)), labels.view(-1))
             # TODO(thom): Add z_loss https://github.com/tensorflow/mesh/blob/fa19d69eafc9a482aff0b59ddd96b025c0cb207d/mesh_tensorflow/layers.py#L666
+
+        print("modeling_t5:loss", torch.isfinite(loss).all())
 
         if not return_dict:
             output = (lm_logits,) + decoder_outputs[1:] + encoder_outputs
