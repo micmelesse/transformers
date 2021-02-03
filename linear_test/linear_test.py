@@ -5,7 +5,7 @@ from torch.nn.parameter import Parameter
 
 wo = nn.Linear(in_features=4096, out_features=1024, bias=False).half()
 
-weight = Parameter(torch.load("Linear_wo_weight.pt").half())
+weight = Parameter(torch.load("Linear_wo_weight.pt").half().cuda())
 tensor_name = "weight"
 if not torch.isfinite(weight).all():
     print(tensor_name, "False")
