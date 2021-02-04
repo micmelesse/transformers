@@ -3,4 +3,5 @@ alias drun='sudo docker run -it --rm --network=host --device=/dev/kfd --device=/
 WORK_DIR='/dockerx/transformers'
 
 # drun -w $WORK_DIR rocm/pytorch:rocm4.0_ubuntu18.04_py3.6_pytorch_1.7.0_apex_c1e88fa
+# drun -w $WORK_DIR rocm/tensorflow:rocm4.0.1-tf2.3-dev
 drun -w $WORK_DIR rocm/pytorch:rocm4.0_ubuntu18.04_py3.6_pytorch
