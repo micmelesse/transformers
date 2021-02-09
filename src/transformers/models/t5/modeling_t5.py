@@ -43,6 +43,7 @@ from ...utils import logging
 from ...utils.model_parallel_utils import assert_device_map, get_device_map
 from .configuration_t5 import T5Config
 
+from ...tracer import *
 
 logger = logging.get_logger(__name__)
 
@@ -1446,6 +1447,13 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
         """
         use_cache = use_cache if use_cache is not None else self.config.use_cache
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+
+        print(type(input_ids))
+        init_hostdir()
+        save_tensor(input_ids, "input_ids")
+       
+        # print(attention_mask)
+        exit()
 
         # Encode if needed (training, first prediction pass)
         if encoder_outputs is None:
