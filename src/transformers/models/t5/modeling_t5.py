@@ -1452,9 +1452,6 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
         init_hostdir()
         save_tensor(input_ids, "input_ids")
        
-        # print(attention_mask)
-        exit()
-
         # Encode if needed (training, first prediction pass)
         if encoder_outputs is None:
             # Convert encoder inputs in embeddings if needed
@@ -1475,6 +1472,8 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
             )
 
         hidden_states = encoder_outputs[0]
+        save_tensor(hidden_states, "hidden_states_after_encoder_outputs")
+        exit()
 
         if self.model_parallel:
             torch.cuda.set_device(self.decoder.first_device)
