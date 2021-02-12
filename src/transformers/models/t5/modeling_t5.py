@@ -258,6 +258,7 @@ class T5DenseReluDense(nn.Module):
         hidden_states = F.relu(hidden_states)
         hidden_states = self.dropout(hidden_states)
         hidden_states = self.wo(hidden_states)
+        save_tensor(hidden_states, "modeling_t5:T5DenseReluDense:hidden_states_after_wo")
         return hidden_states
 
 
@@ -296,6 +297,8 @@ class T5LayerFF(nn.Module):
 
     def forward(self, hidden_states):
         forwarded_states = self.layer_norm(hidden_states)
+
+        save_tensor(forwarded_states, "modeling_t5:T5LayerFF:forwarded_states_before_DenseReluDense")
         forwarded_states = self.DenseReluDense(forwarded_states)
         hidden_states = hidden_states + self.dropout(forwarded_states)
         return hidden_states
@@ -679,6 +682,7 @@ class T5Block(nn.Module):
             attention_outputs = attention_outputs + cross_attention_outputs[2:]
 
         # Apply Feed Forward layer
+        save_tensor(hidden_states, "modeling_t5:T5Block:hidden_states_before_T5LayerFF")
         hidden_states = self.layer[-1](hidden_states)
         if torch.isinf(hidden_states).any():
             clamp_value = torch.finfo(hidden_states.dtype).max - 1000
