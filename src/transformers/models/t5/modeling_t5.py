@@ -258,7 +258,7 @@ class T5DenseReluDense(nn.Module):
         hidden_states = F.relu(hidden_states)
         hidden_states = self.dropout(hidden_states)
         hidden_states = self.wo(hidden_states)
-        save_tensor(hidden_states, "modeling_t5:T5DenseReluDense:hidden_states_after_wo")
+        save_tensor(hidden_states, "modeling_t5:modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerFF:T5DenseReluDense:hidden_states_after_wo")
         return hidden_states
 
 
@@ -298,7 +298,7 @@ class T5LayerFF(nn.Module):
     def forward(self, hidden_states):
         forwarded_states = self.layer_norm(hidden_states)
 
-        save_tensor(forwarded_states, "modeling_t5:T5LayerFF:forwarded_states_before_DenseReluDense")
+        save_tensor(forwarded_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerFF:forwarded_states_before_DenseReluDense")
         forwarded_states = self.DenseReluDense(forwarded_states)
         hidden_states = hidden_states + self.dropout(forwarded_states)
         return hidden_states
@@ -424,7 +424,7 @@ class T5Attention(nn.Module):
         # Input is (batch_size, seq_length, dim)
         # Mask is (batch_size, key_length) (non-causal) or (batch_size, key_length, key_length)
         # past_key_value[0] is (batch_size, n_heads, q_len - 1, dim_per_head)
-        save_tensor(hidden_states, "modeling_t5:T5Attention:hidden_states_before_anyop")
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerSelfAttention:T5Attention:hidden_states_before_anyop")
         batch_size, seq_length = hidden_states.shape[:2]
 
         real_seq_length = seq_length
@@ -540,9 +540,9 @@ class T5LayerSelfAttention(nn.Module):
         use_cache=False,
         output_attentions=False,
     ):
-        save_tensor(hidden_states, "modeling_t5:T5LayerSelfAttention:hidden_states_before_anyop")
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerSelfAttention:hidden_states_before_anyop")
         normed_hidden_states = self.layer_norm(hidden_states)
-        save_tensor(normed_hidden_states, "modeling_t5:T5LayerSelfAttention:normed_hidden_states_after_layernom")
+        save_tensor(normed_hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerSelfAttention:normed_hidden_states_after_layernom")
         attention_output = self.SelfAttention(
             normed_hidden_states,
             mask=attention_mask,
@@ -618,7 +618,7 @@ class T5Block(nn.Module):
         output_attentions=False,
         return_dict=True,
     ):
-        save_tensor(hidden_states, "modeling_t5:T5Block:hidden_states_before_any_ops")
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:hidden_states_before_any_ops")
         if past_key_value is not None:
             assert self.is_decoder, "Only decoder can use `past_key_values`"
             expected_num_past_key_values = 2 if encoder_hidden_states is None else 4
@@ -685,7 +685,7 @@ class T5Block(nn.Module):
             attention_outputs = attention_outputs + cross_attention_outputs[2:]
 
         # Apply Feed Forward layer
-        save_tensor(hidden_states, "modeling_t5:T5Block:hidden_states_before_T5LayerFF")
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:hidden_states_before_T5LayerFF")
         hidden_states = self.layer[-1](hidden_states)
         if torch.isinf(hidden_states).any():
             clamp_value = torch.finfo(hidden_states.dtype).max - 1000
@@ -1457,7 +1457,7 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
 
         print(type(input_ids))
         init_hostdir()
-        save_tensor(input_ids, "input_ids")
+        save_tensor(input_ids, "modeling_t5:T5ForConditionalGeneration:input_ids")
        
         # Encode if needed (training, first prediction pass)
         if encoder_outputs is None:
@@ -1479,7 +1479,7 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
             )
 
         hidden_states = encoder_outputs[0]
-        save_tensor(hidden_states, "hidden_states_after_encoder_outputs")
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:hidden_states_after_encoder_outputs")
         exit()
 
         if self.model_parallel:
