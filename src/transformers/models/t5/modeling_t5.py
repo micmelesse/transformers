@@ -258,7 +258,7 @@ class T5DenseReluDense(nn.Module):
         hidden_states = F.relu(hidden_states)
         hidden_states = self.dropout(hidden_states)
         hidden_states = self.wo(hidden_states)
-        save_tensor(hidden_states, "modeling_t5:modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerFF:T5DenseReluDense:hidden_states_after_wo")
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerFF:T5DenseReluDense:hidden_states_after_wo")
         return hidden_states
 
 
