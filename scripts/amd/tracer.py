@@ -25,8 +25,9 @@ def init_hostdir():
     if os.path.exists(host_name):
         print(host_name, "exists")
         # if yes_or_no("Do you want to delete existing folder, " + host_name):
-        #     shutil.rmtree(host_name)
-        #     os.mkdir(host_name)
+        print("deleting existing", host_name, "directory")
+        shutil.rmtree(host_name)
+        os.mkdir(host_name)
     else:
         os.mkdir(host_name)
 
@@ -35,6 +36,7 @@ def save_tensor(tensor_to_save, name=None):
     if name == None:
         name = print_var_name(tensor_to_save)
 
-    device_id = tensor_to_save.get_device()
+    # device_id = tensor_to_save.get_device()
+    device_id = 0
 
     torch.save(tensor_to_save, os.path.join(host_name, str(name) + "_" + str(device_id) + '.pt'))

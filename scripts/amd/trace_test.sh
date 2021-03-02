@@ -12,6 +12,8 @@ cd examples/seq2seq
 
 rm -r output_dir
 
+CUDA_VISIBLE_DEVICES="4,5"
+
 export BS=38
 echo "w/ --fp16"
 PYTHONPATH=../../src USE_TF=0 python -m torch.distributed.launch \

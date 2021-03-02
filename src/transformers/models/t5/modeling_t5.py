@@ -424,7 +424,7 @@ class T5Attention(nn.Module):
         # Input is (batch_size, seq_length, dim)
         # Mask is (batch_size, key_length) (non-causal) or (batch_size, key_length, key_length)
         # past_key_value[0] is (batch_size, n_heads, q_len - 1, dim_per_head)
-        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerSelfAttention:T5Attention:hidden_states_before_anyop")
+        # save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerSelfAttention:T5Attention:hidden_states_before_anyop")
         batch_size, seq_length = hidden_states.shape[:2]
 
         real_seq_length = seq_length
@@ -540,9 +540,9 @@ class T5LayerSelfAttention(nn.Module):
         use_cache=False,
         output_attentions=False,
     ):
-        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerSelfAttention:hidden_states_before_anyop")
+        # save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerSelfAttention:hidden_states_before_anyop")
         normed_hidden_states = self.layer_norm(hidden_states)
-        save_tensor(normed_hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerSelfAttention:normed_hidden_states_after_layernom")
+        # save_tensor(normed_hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Block:T5LayerSelfAttention:normed_hidden_states_after_layernom")
         attention_output = self.SelfAttention(
             normed_hidden_states,
             mask=attention_mask,
