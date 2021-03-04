@@ -956,11 +956,11 @@ class T5Stack(T5PreTrainedModel):
                 use_cache=use_cache,
                 output_attentions=output_attentions,
             )
-            save_tensor(layer_outputs, "modeling_t5:T5ForConditionalGeneration:T5Stack:layer_outputs "+str(i))
 
             # layer_outputs is a tuple with:
             # hidden-states, key-value-states, (self-attention weights), (self-attention position bias), (cross-attention weights), (cross-attention position bias)
             hidden_states, present_key_value_state = layer_outputs[:2]
+            save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:layer_outputs_hidden_states_"+str(i))
 
             # We share the position biases between the layers - the first layer store them
             # layer_outputs = hidden-states, key-value-states (self-attention weights),
