@@ -17,7 +17,7 @@ CUDA_VISIBLE_DEVICES="4,5"
 export BS=38
 echo "w/ --fp16"
 PYTHONPATH=../../src USE_TF=0 python -m torch.distributed.launch \
-    --nproc_per_node=2 ./finetune_trainer.py --model_name_or_path t5-large --output_dir output_dir \
+    --nproc_per_node=1 ./finetune_trainer.py --model_name_or_path t5-large --output_dir output_dir \
     --adam_eps 1e-06 --data_dir wmt_en_ro --do_eval --do_train --evaluation_strategy=steps --freeze_embeds \
     --label_smoothing 0.1 --learning_rate 3e-5 --logging_first_step --logging_steps 1 --max_source_length 128 \
     --max_target_length 128 --num_train_epochs 1 --overwrite_output_dir --per_device_eval_batch_size $BS \
