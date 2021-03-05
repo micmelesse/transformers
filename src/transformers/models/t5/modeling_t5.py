@@ -853,7 +853,7 @@ class T5Stack(T5PreTrainedModel):
         output_hidden_states=None,
         return_dict=None,
     ):
-        
+
         save_tensor(input_ids, "modeling_t5:T5ForConditionalGeneration:T5Stack:input_ids")
         # Model parallel
         if self.model_parallel:
@@ -960,7 +960,7 @@ class T5Stack(T5PreTrainedModel):
             # layer_outputs is a tuple with:
             # hidden-states, key-value-states, (self-attention weights), (self-attention position bias), (cross-attention weights), (cross-attention position bias)
             hidden_states, present_key_value_state = layer_outputs[:2]
-            save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:layer_outputs_hidden_states_"+str(i))
+            save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:layer_outputs_hidden_states_" + str(i))
 
             # We share the position biases between the layers - the first layer store them
             # layer_outputs = hidden-states, key-value-states (self-attention weights),
@@ -1462,8 +1462,9 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
 
         print(type(input_ids))
         init_hostdir()
+        print("input_ids", input_ids.shape)
         save_tensor(input_ids, "modeling_t5:T5ForConditionalGeneration:input_ids")
-       
+
         # Encode if needed (training, first prediction pass)
         if encoder_outputs is None:
             # Convert encoder inputs in embeddings if needed
