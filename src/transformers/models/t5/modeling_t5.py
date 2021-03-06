@@ -924,6 +924,7 @@ class T5Stack(T5PreTrainedModel):
         encoder_decoder_position_bias = None
 
         save_tensor(inputs_embeds, "modeling_t5:T5ForConditionalGeneration:T5Stack:inputs_embeds_before_layers_before_dropout")
+        torch.manual_seed(1234)
         hidden_states = self.dropout(inputs_embeds)
         save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:hidden_states_before_layers_after_dropout")
 
