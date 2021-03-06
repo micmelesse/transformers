@@ -18,6 +18,7 @@ import os
 import sys
 from dataclasses import dataclass, field
 from typing import Optional
+import torch
 
 import transformers
 from transformers import (
@@ -364,4 +365,5 @@ def _mp_fn(index):
 
 
 if __name__ == "__main__":
+    torch.set_deterministic(True)
     main()
