@@ -645,13 +645,14 @@ class T5Block(nn.Module):
             output_attentions=output_attentions,
         )
         hidden_states, present_key_value_state = self_attention_outputs[:2]
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_self_attention_outputs")
         attention_outputs = self_attention_outputs[2:]  # Keep self-attention outputs and relative position weights
 
         # clamp inf values to enable fp16 training
         if torch.isinf(hidden_states).any():
             clamp_value = torch.finfo(hidden_states.dtype).max - 1000
             hidden_states = torch.clamp(hidden_states, min=-clamp_value, max=clamp_value)
-
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_self_attention_outputs_clamped")
         do_cross_attention = self.is_decoder and encoder_hidden_states is not None
         if do_cross_attention:
             # the actual query length is unknown for cross attention
@@ -673,9 +674,11 @@ class T5Block(nn.Module):
                 output_attentions=output_attentions,
             )
             hidden_states = cross_attention_outputs[0]
+            save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_cross_attention_outputs")
             if torch.isinf(hidden_states).any():
                 clamp_value = torch.finfo(hidden_states.dtype).max - 1000
                 hidden_states = torch.clamp(hidden_states, min=-clamp_value, max=clamp_value)
+            save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_cross_attention_outputs_clamped")
 
             # Combine self attn and cross attn key value states
             if present_key_value_state is not None:
@@ -687,9 +690,11 @@ class T5Block(nn.Module):
         # Apply Feed Forward layer
         save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_before_T5LayerFF")
         hidden_states = self.layer[-1](hidden_states)
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_T5LayerFF")
         if torch.isinf(hidden_states).any():
             clamp_value = torch.finfo(hidden_states.dtype).max - 1000
             hidden_states = torch.clamp(hidden_states, min=-clamp_value, max=clamp_value)
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_T5LayerFF_clamped")
         outputs = (hidden_states,)
 
         outputs = outputs + (present_key_value_state,) + attention_outputs
