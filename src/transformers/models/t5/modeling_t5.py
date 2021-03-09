@@ -540,9 +540,9 @@ class T5LayerSelfAttention(nn.Module):
         use_cache=False,
         output_attentions=False,
     ):
-        # save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:hidden_states_before_anyop")
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:hidden_states_before_anyop")
         normed_hidden_states = self.layer_norm(hidden_states)
-        # save_tensor(normed_hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:normed_hidden_states_after_layernom")
+        save_tensor(normed_hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:normed_hidden_states_after_layernom")
         attention_output = self.SelfAttention(
             normed_hidden_states,
             mask=attention_mask,
@@ -552,8 +552,11 @@ class T5LayerSelfAttention(nn.Module):
             use_cache=use_cache,
             output_attentions=output_attentions,
         )
+        save_tensor(attention_output, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:attention_output_before_dropout")
         hidden_states = hidden_states + self.dropout(attention_output[0])
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:hidden_states_output_after_dropout")
         outputs = (hidden_states,) + attention_output[1:]  # add attentions if we output them
+        exit()
         return outputs
 
 
