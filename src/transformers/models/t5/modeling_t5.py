@@ -522,7 +522,7 @@ class T5Attention(nn.Module):
         attn_output = self.o(attn_output)
         save_tensor(attn_output, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:attn_output")
         exit()
-        
+
         present_key_value_state = (key_states, value_states) if (self.is_decoder and use_cache) else None
         outputs = (attn_output,) + (present_key_value_state,) + (position_bias,)
 
@@ -549,7 +549,8 @@ class T5LayerSelfAttention(nn.Module):
         output_attentions=False,
     ):
         save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:hidden_states_before_anyop")
-        normed_hidden_states = self.layer_norm(hidden_states)
+        # normed_hidden_states = self.layer_norm(hidden_states)
+        normed_hidden_states = hidden_states
         save_tensor(normed_hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:normed_hidden_states_after_layernom")
         attention_output = self.SelfAttention(
             normed_hidden_states,
