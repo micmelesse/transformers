@@ -8,6 +8,10 @@ if [ ! "$BASH_VERSION" ]; then
     exit 1
 fi
 
+# copy deepsped config files
+sh scripts/amd/copy_deepspeed_configs.sh
+
+# enter seq2seq dir
 cd examples/seq2seq
 
 rm -r output_dir

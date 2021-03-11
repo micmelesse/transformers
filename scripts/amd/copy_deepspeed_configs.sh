@@ -1,0 +1,1 @@
+cp scripts/amd/ds_config_cpu* examples/seq2seq
