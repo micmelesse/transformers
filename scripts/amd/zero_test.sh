@@ -28,6 +28,12 @@ rm -r output_dir
 #     --n_train 2000 --n_val 500 \
 #     2>&1 | tee log_baseline.txt
 
+# export MIOPEN_CHECK_NUMERICS=0x04
+# export MIOPEN_ENABLE_LOGGING=1
+# export MIOPEN_ENABLE_LOGGING_CMD=1
+# export MIOPEN_LOG_LEVEL=6
+# export AMD_LOG_LEVEL=3
+
 export BS=52
 echo "w/ --fp16"
 PYTHONPATH=../../src USE_TF=0 python -m torch.distributed.launch \

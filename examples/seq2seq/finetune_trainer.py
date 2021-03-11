@@ -46,6 +46,7 @@ from utils import (
     write_txt_file,
 )
 
+import torch
 
 logger = logging.getLogger(__name__)
 
@@ -364,4 +365,5 @@ def _mp_fn(index):
 
 
 if __name__ == "__main__":
+    torch.autograd.set_detect_anomaly(True)
     main()
