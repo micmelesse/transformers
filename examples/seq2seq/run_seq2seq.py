@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding=utf-8
 # Copyright The HuggingFace Team and The HuggingFace Inc. team. All rights reserved.
 #
@@ -24,10 +25,12 @@ import sys
 from dataclasses import dataclass, field
 from typing import Optional
 
+import nltk  # Here to have a nice missing dependency error message early on
 import numpy as np
 from datasets import load_dataset, load_metric
 
 import transformers
+from filelock import FileLock
 from transformers import (
     AutoConfig,
     AutoModelForSeq2SeqLM,
@@ -35,15 +38,27 @@ from transformers import (
     DataCollatorForSeq2Seq,
     HfArgumentParser,
     MBartTokenizer,
+    MBartTokenizerFast,
     Seq2SeqTrainer,
     Seq2SeqTrainingArguments,
     default_data_collator,
     set_seed,
 )
-from transformers.trainer_utils import is_main_process
+from transformers.file_utils import is_offline_mode
+from transformers.trainer_utils import get_last_checkpoint, is_main_process
 
 
 logger = logging.getLogger(__name__)
+
+try:
+    nltk.data.find("tokenizers/punkt")
+except (LookupError, OSError):
+    if is_offline_mode():
+        raise LookupError(
+            "Offline mode: run this script without TRANSFORMERS_OFFLINE first to download nltk data files"
+        )
+    with FileLock(".lock") as lock:
+        nltk.download("punkt", quiet=True)
 
 
 @dataclass
@@ -109,10 +124,22 @@ class DataTrainingArguments:
         default=None,
         metadata={"help": "The name of the column in the datasets containing the summaries (for summarization)."},
     )
-    train_file: Optional[str] = field(default=None, metadata={"help": "The input training data file (a text file)."})
+    train_file: Optional[str] = field(
+        default=None, metadata={"help": "The input training data file (a jsonlines or csv file)."}
+    )
     validation_file: Optional[str] = field(
         default=None,
-        metadata={"help": "An optional input evaluation data file to evaluate the perplexity on (a text file)."},
+        metadata={
+            "help": "An optional input evaluation data file to evaluate the metrics (rouge/sacreblue) on "
+            "(a jsonlines or csv file)."
+        },
+    )
+    test_file: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "An optional input test data file to evaluate the metrics (rouge/sacreblue) on "
+            "(a jsonlines or csv file)."
+        },
     )
     overwrite_cache: bool = field(
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
@@ -136,10 +163,10 @@ class DataTrainingArguments:
         },
     )
     val_max_target_length: Optional[int] = field(
-        default=142,
+        default=None,
         metadata={
             "help": "The maximum total sequence length for validation target text after tokenization. Sequences longer "
-            "than this will be truncated, sequences shorter will be padded. "
+            "than this will be truncated, sequences shorter will be padded. Will default to `max_target_length`."
             "This argument is also used to override the ``max_length`` param of ``model.generate``, which is used "
             "during ``evaluate`` and ``predict``."
         },
@@ -166,14 +193,30 @@ class DataTrainingArguments:
             "value if set."
         },
     )
+    max_test_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "For debugging purposes or quicker training, truncate the number of test examples to this "
+            "value if set."
+        },
+    )
     source_lang: Optional[str] = field(default=None, metadata={"help": "Source language id for translation."})
     target_lang: Optional[str] = field(default=None, metadata={"help": "Target language id for translation."})
-    eval_beams: Optional[int] = field(default=None, metadata={"help": "Number of beams to use for evaluation."})
+    num_beams: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "Number of beams to use for evaluation. This argument will be passed to ``model.generate``, "
+            "which is used during ``evaluate`` and ``predict``."
+        },
+    )
     ignore_pad_token_for_loss: bool = field(
         default=True,
         metadata={
             "help": "Whether to ignore the tokens corresponding to padded labels in the loss computation or not."
         },
+    )
+    source_prefix: Optional[str] = field(
+        default=None, metadata={"help": "A prefix to add before every source text (useful for T5 models)."}
     )
 
     def __post_init__(self):
@@ -190,11 +233,22 @@ class DataTrainingArguments:
             raise ValueError(
                 "`task` should be summarization, summarization_{dataset}, translation or translation_{xx}_to_{yy}."
             )
+        if self.val_max_target_length is None:
+            self.val_max_target_length = self.max_target_length
 
 
 summarization_name_mapping = {
+    "amazon_reviews_multi": ("review_body", "review_title"),
+    "big_patent": ("description", "abstract"),
     "cnn_dailymail": ("article", "highlights"),
+    "orange_sum": ("text", "summary"),
+    "pn_summary": ("article", "summary"),
+    "psc": ("extract_text", "summary_text"),
+    "samsum": ("dialogue", "summary"),
+    "thaisum": ("body", "summary"),
+    "xglue": ("news_body", "news_title"),
     "xsum": ("document", "summary"),
+    "wiki_summary": ("article", "highlights"),
 }
 
 
@@ -211,23 +265,28 @@ def main():
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    if (
-        os.path.exists(training_args.output_dir)
-        and os.listdir(training_args.output_dir)
-        and training_args.do_train
-        and not training_args.overwrite_output_dir
-    ):
-        raise ValueError(
-            f"Output directory ({training_args.output_dir}) already exists and is not empty."
-            "Use --overwrite_output_dir to overcome."
-        )
+    # Detecting last checkpoint.
+    last_checkpoint = None
+    if os.path.isdir(training_args.output_dir) and training_args.do_train and not training_args.overwrite_output_dir:
+        last_checkpoint = get_last_checkpoint(training_args.output_dir)
+        if last_checkpoint is None and len(os.listdir(training_args.output_dir)) > 0:
+            raise ValueError(
+                f"Output directory ({training_args.output_dir}) already exists and is not empty. "
+                "Use --overwrite_output_dir to overcome."
+            )
+        elif last_checkpoint is not None:
+            logger.info(
+                f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
+                "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
+            )
 
     # Setup logging
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        level=logging.INFO if is_main_process(training_args.local_rank) else logging.WARN,
+        handlers=[logging.StreamHandler(sys.stdout)],
     )
+    logger.setLevel(logging.INFO if is_main_process(training_args.local_rank) else logging.WARN)
 
     # Log on each process the small summary:
     logger.warning(
@@ -265,6 +324,9 @@ def main():
         if data_args.validation_file is not None:
             data_files["validation"] = data_args.validation_file
             extension = data_args.validation_file.split(".")[-1]
+        if data_args.test_file is not None:
+            data_files["test"] = data_args.test_file
+            extension = data_args.test_file.split(".")[-1]
         datasets = load_dataset(extension, data_files=data_files)
     # See more about loading any type of standard or custom dataset (from files, python dict, pandas DataFrame, etc) at
     # https://huggingface.co/docs/datasets/loading_datasets.html.
@@ -297,21 +359,35 @@ def main():
     )
 
     # Set decoder_start_token_id
-    if model.config.decoder_start_token_id is None and isinstance(tokenizer, MBartTokenizer):
-        model.config.decoder_start_token_id = tokenizer.lang_code_to_id[data_args.target_lang]
+    if model.config.decoder_start_token_id is None and isinstance(tokenizer, (MBartTokenizer, MBartTokenizerFast)):
+        assert (
+            data_args.target_lang is not None and data_args.source_lang is not None
+        ), "mBart requires --target_lang and --source_lang"
+        if isinstance(tokenizer, MBartTokenizer):
+            model.config.decoder_start_token_id = tokenizer.lang_code_to_id[data_args.target_lang]
+        else:
+            model.config.decoder_start_token_id = tokenizer.convert_tokens_to_ids(data_args.target_lang)
+
     if model.config.decoder_start_token_id is None:
         raise ValueError("Make sure that `config.decoder_start_token_id` is correctly defined")
+
+    prefix = data_args.source_prefix if data_args.source_prefix is not None else ""
 
     # Preprocessing the datasets.
     # We need to tokenize inputs and targets.
     if training_args.do_train:
         column_names = datasets["train"].column_names
-    else:
+    elif training_args.do_eval:
         column_names = datasets["validation"].column_names
+    elif training_args.do_predict:
+        column_names = datasets["test"].column_names
+    else:
+        logger.info("There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`.")
+        return
 
     # For translation we set the codes of our source and target languages (only useful for mBART, the others will
     # ignore those attributes).
-    if data_args.task.startswith("translation"):
+    if data_args.task.startswith("translation") or isinstance(tokenizer, (MBartTokenizer, MBartTokenizerFast)):
         if data_args.source_lang is not None:
             tokenizer.src_lang = data_args.source_lang
         if data_args.target_lang is not None:
@@ -328,10 +404,18 @@ def main():
             text_column = dataset_columns[0] if dataset_columns is not None else column_names[0]
         else:
             text_column = data_args.text_column
+            if text_column not in column_names:
+                raise ValueError(
+                    f"--text_column' value '{data_args.text_column}' needs to be one of: {', '.join(column_names)}"
+                )
         if data_args.summary_column is None:
             summary_column = dataset_columns[1] if dataset_columns is not None else column_names[1]
         else:
             summary_column = data_args.summary_column
+            if summary_column not in column_names:
+                raise ValueError(
+                    f"--summary_column' value '{data_args.summary_column}' needs to be one of: {', '.join(column_names)}"
+                )
     else:
         # Get the language codes for input/target.
         lang_search = re.match("translation_([a-z]+)_to_([a-z]+)", data_args.task)
@@ -355,6 +439,12 @@ def main():
     max_target_length = data_args.max_target_length
     padding = "max_length" if data_args.pad_to_max_length else False
 
+    if training_args.label_smoothing_factor > 0 and not hasattr(model, "prepare_decoder_input_ids_from_labels"):
+        logger.warn(
+            "label_smoothing is enabled but the `prepare_decoder_input_ids_from_labels` method is not defined for"
+            f"`{model.__class__.__name__}`. This will lead to loss being calculated twice and will take up more memory"
+        )
+
     def preprocess_function(examples):
         if data_args.task.startswith("translation"):
             inputs = [ex[source_lang] for ex in examples["translation"]]
@@ -362,6 +452,7 @@ def main():
         else:
             inputs = examples[text_column]
             targets = examples[summary_column]
+        inputs = [prefix + inp for inp in inputs]
         model_inputs = tokenizer(inputs, max_length=data_args.max_source_length, padding=padding, truncation=True)
 
         # Setup the tokenizer for targets
@@ -380,6 +471,8 @@ def main():
 
     if training_args.do_train:
         train_dataset = datasets["train"]
+        if "train" not in datasets:
+            raise ValueError("--do_train requires a train dataset")
         if data_args.max_train_samples is not None:
             train_dataset = train_dataset.select(range(data_args.max_train_samples))
         train_dataset = train_dataset.map(
@@ -392,10 +485,27 @@ def main():
 
     if training_args.do_eval:
         max_target_length = data_args.val_max_target_length
+        if "validation" not in datasets:
+            raise ValueError("--do_eval requires a validation dataset")
         eval_dataset = datasets["validation"]
         if data_args.max_val_samples is not None:
             eval_dataset = eval_dataset.select(range(data_args.max_val_samples))
         eval_dataset = eval_dataset.map(
+            preprocess_function,
+            batched=True,
+            num_proc=data_args.preprocessing_num_workers,
+            remove_columns=column_names,
+            load_from_cache_file=not data_args.overwrite_cache,
+        )
+
+    if training_args.do_predict:
+        max_target_length = data_args.val_max_target_length
+        if "test" not in datasets:
+            raise ValueError("--do_predict requires a test dataset")
+        test_dataset = datasets["test"]
+        if data_args.max_test_samples is not None:
+            test_dataset = test_dataset.select(range(data_args.max_test_samples))
+        test_dataset = test_dataset.map(
             preprocess_function,
             batched=True,
             num_proc=data_args.preprocessing_num_workers,
@@ -408,11 +518,29 @@ def main():
     if data_args.pad_to_max_length:
         data_collator = default_data_collator
     else:
-        data_collator = DataCollatorForSeq2Seq(tokenizer, label_pad_token_id=label_pad_token_id)
+        data_collator = DataCollatorForSeq2Seq(
+            tokenizer,
+            model=model,
+            label_pad_token_id=label_pad_token_id,
+            pad_to_multiple_of=8 if training_args.fp16 else None,
+        )
 
     # Metric
     metric_name = "rouge" if data_args.task.startswith("summarization") else "sacrebleu"
     metric = load_metric(metric_name)
+
+    def postprocess_text(preds, labels):
+        preds = [pred.strip() for pred in preds]
+        labels = [label.strip() for label in labels]
+
+        # rougeLSum expects newline after each sentence
+        if metric_name == "rouge":
+            preds = ["\n".join(nltk.sent_tokenize(pred)) for pred in preds]
+            labels = ["\n".join(nltk.sent_tokenize(label)) for label in labels]
+        else:  # sacrebleu
+            labels = [[label] for label in labels]
+
+        return preds, labels
 
     def compute_metrics(eval_preds):
         preds, labels = eval_preds
@@ -425,22 +553,19 @@ def main():
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
         # Some simple post-processing
-        decoded_preds = [pred.strip() for pred in decoded_preds]
-        decoded_labels = [label.strip() for label in decoded_labels]
-        if metric_name == "sacrebleu":
-            decoded_labels = [[label] for label in decoded_labels]
+        decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
 
-        result = metric.compute(predictions=decoded_preds, references=decoded_labels)
-
-        # Extract a few results from ROUGE
         if metric_name == "rouge":
+            result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
+            # Extract a few results from ROUGE
             result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
         else:
+            result = metric.compute(predictions=decoded_preds, references=decoded_labels)
             result = {"bleu": result["score"]}
 
         prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
         result["gen_len"] = np.mean(prediction_lens)
-
+        result = {k: round(v, 4) for k, v in result.items()}
         return result
 
     # Initialize our Trainer
@@ -456,38 +581,64 @@ def main():
 
     # Training
     if training_args.do_train:
-        train_result = trainer.train(
-            model_path=model_args.model_name_or_path if os.path.isdir(model_args.model_name_or_path) else None
-        )
+        if last_checkpoint is not None:
+            checkpoint = last_checkpoint
+        elif os.path.isdir(model_args.model_name_or_path):
+            checkpoint = model_args.model_name_or_path
+        else:
+            checkpoint = None
+        train_result = trainer.train(resume_from_checkpoint=checkpoint)
         trainer.save_model()  # Saves the tokenizer too for easy upload
 
-        output_train_file = os.path.join(training_args.output_dir, "train_results.txt")
-        if trainer.is_world_process_zero():
-            with open(output_train_file, "w") as writer:
-                logger.info("***** Train results *****")
-                for key, value in sorted(train_result.metrics.items()):
-                    logger.info(f"  {key} = {value}")
-                    writer.write(f"{key} = {value}\n")
+        metrics = train_result.metrics
+        max_train_samples = (
+            data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
+        )
+        metrics["train_samples"] = min(max_train_samples, len(train_dataset))
 
-            # Need to save the state, since Trainer.save_model saves only the tokenizer with the model
-            trainer.state.save_to_json(os.path.join(training_args.output_dir, "trainer_state.json"))
+        trainer.log_metrics("train", metrics)
+        trainer.save_metrics("train", metrics)
+        trainer.save_state()
 
     # Evaluation
-    results = {}
     if training_args.do_eval:
         logger.info("*** Evaluate ***")
 
-        results = trainer.evaluate()
+        metrics = trainer.evaluate(
+            max_length=data_args.val_max_target_length, num_beams=data_args.num_beams, metric_key_prefix="eval"
+        )
+        max_val_samples = data_args.max_val_samples if data_args.max_val_samples is not None else len(eval_dataset)
+        metrics["eval_samples"] = min(max_val_samples, len(eval_dataset))
 
-        output_eval_file = os.path.join(training_args.output_dir, "eval_results_seq2seq.txt")
+        trainer.log_metrics("eval", metrics)
+        trainer.save_metrics("eval", metrics)
+
+    # predict
+    if training_args.do_predict:
+        logger.info("*** Test ***")
+
+        test_results = trainer.predict(
+            test_dataset,
+            metric_key_prefix="test",
+            max_length=data_args.val_max_target_length,
+            num_beams=data_args.num_beams,
+        )
+        metrics = test_results.metrics
+        max_test_samples = data_args.max_test_samples if data_args.max_test_samples is not None else len(test_dataset)
+        metrics["test_samples"] = min(max_test_samples, len(test_dataset))
+
+        trainer.log_metrics("test", metrics)
+        trainer.save_metrics("test", metrics)
+
         if trainer.is_world_process_zero():
-            with open(output_eval_file, "w") as writer:
-                logger.info("***** Eval results *****")
-                for key, value in sorted(results.items()):
-                    logger.info(f"  {key} = {value}")
-                    writer.write(f"{key} = {value}\n")
-
-    return results
+            if training_args.predict_with_generate:
+                test_preds = tokenizer.batch_decode(
+                    test_results.predictions, skip_special_tokens=True, clean_up_tokenization_spaces=True
+                )
+                test_preds = [pred.strip() for pred in test_preds]
+                output_test_preds_file = os.path.join(training_args.output_dir, "test_generations.txt")
+                with open(output_test_preds_file, "w") as writer:
+                    writer.write("\n".join(test_preds))
 
 
 def _mp_fn(index):

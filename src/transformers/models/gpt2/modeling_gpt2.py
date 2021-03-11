@@ -51,6 +51,7 @@ from .configuration_gpt2 import GPT2Config
 
 logger = logging.get_logger(__name__)
 
+_CHECKPOINT_FOR_DOC = "gpt2"
 _CONFIG_FOR_DOC = "GPT2Config"
 _TOKENIZER_FOR_DOC = "GPT2Tokenizer"
 
@@ -345,12 +346,16 @@ class GPT2PreTrainedModel(PreTrainedModel):
 
     def _init_weights(self, module):
         """Initialize the weights."""
-        if isinstance(module, (nn.Linear, nn.Embedding, Conv1D)):
+        if isinstance(module, (nn.Linear, Conv1D)):
             # Slightly different from the TF version which uses truncated_normal for initialization
             # cf https://github.com/pytorch/pytorch/pull/5617
             module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
-            if isinstance(module, (nn.Linear, Conv1D)) and module.bias is not None:
+            if module.bias is not None:
                 module.bias.data.zero_()
+        elif isinstance(module, nn.Embedding):
+            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
+            if module.padding_idx is not None:
+                module.weight.data[module.padding_idx].zero_()
         elif isinstance(module, nn.LayerNorm):
             module.bias.data.zero_()
             module.weight.data.fill_(1.0)
@@ -541,6 +546,7 @@ class GPT2Model(GPT2PreTrainedModel):
         self.ln_f = nn.LayerNorm(config.n_embd, eps=config.layer_norm_epsilon)
 
         self.init_weights()
+
         # Model parallel
         self.model_parallel = False
         self.device_map = None
@@ -594,7 +600,7 @@ class GPT2Model(GPT2PreTrainedModel):
     @add_start_docstrings_to_model_forward(GPT2_INPUTS_DOCSTRING)
     @add_code_sample_docstrings(
         tokenizer_class=_TOKENIZER_FOR_DOC,
-        checkpoint="gpt2",
+        checkpoint=_CHECKPOINT_FOR_DOC,
         output_type=BaseModelOutputWithPastAndCrossAttentions,
         config_class=_CONFIG_FOR_DOC,
     )
@@ -721,7 +727,8 @@ class GPT2Model(GPT2PreTrainedModel):
 
                 if use_cache:
                     logger.warn(
-                        "`use_cache = True` is incompatible with `config.gradient_checkpointing = True`. Setting `use_cache = False`..."
+                        "`use_cache=True` is incompatible with `config.gradient_checkpointing=True`. Setting "
+                        "`use_cache=False`..."
                     )
                     use_cache = False
 
@@ -804,7 +811,9 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
 
         self.init_weights()
 
+        # Model parallel
         self.model_parallel = False
+        self.device_map = None
 
     @add_start_docstrings(PARALLELIZE_DOCSTRING)
     def parallelize(self, device_map=None):
@@ -863,7 +872,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
     @add_start_docstrings_to_model_forward(GPT2_INPUTS_DOCSTRING)
     @add_code_sample_docstrings(
         tokenizer_class=_TOKENIZER_FOR_DOC,
-        checkpoint="gpt2",
+        checkpoint=_CHECKPOINT_FOR_DOC,
         output_type=CausalLMOutputWithCrossAttentions,
         config_class=_CONFIG_FOR_DOC,
     )
@@ -970,6 +979,10 @@ class GPT2DoubleHeadsModel(GPT2PreTrainedModel):
 
         self.init_weights()
 
+        # Model parallel
+        self.model_parallel = False
+        self.device_map = None
+
     def get_output_embeddings(self):
         return self.lm_head
 
@@ -1031,8 +1044,8 @@ class GPT2DoubleHeadsModel(GPT2PreTrainedModel):
             1[``.
         labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size, sequence_length)`, `optional`):
             Labels for language modeling. Note that the labels **are shifted** inside the model, i.e. you can set
-            ``labels = input_ids`` Indices are selected in ``[-1, 0, ..., config.vocab_size]`` All labels set to
-            ``-100`` are ignored (masked), the loss is only computed for labels in ``[0, ..., config.vocab_size]``
+            ``labels = input_ids`` Indices are selected in ``[-100, 0, ..., config.vocab_size - 1]`` All labels set to
+            ``-100`` are ignored (masked), the loss is only computed for labels in ``[0, ..., config.vocab_size - 1]``
         mc_labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size)`, `optional`):
             Labels for computing the multiple choice classification loss. Indices should be in ``[0, ...,
             num_choices]`` where `num_choices` is the size of the second dimension of the input tensors. (see
@@ -1151,6 +1164,10 @@ class GPT2ForSequenceClassification(GPT2PreTrainedModel):
         self.score = nn.Linear(config.n_embd, self.num_labels, bias=False)
 
         self.init_weights()
+
+        # Model parallel
+        self.model_parallel = False
+        self.device_map = None
 
     @add_start_docstrings_to_model_forward(GPT2_INPUTS_DOCSTRING)
     @add_code_sample_docstrings(
