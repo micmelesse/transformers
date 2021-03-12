@@ -37,7 +37,6 @@ def init_hostdir():
 
 
 def save_tensor(tensor_to_save, name=None):
-    init_hostdir()
     if name == None:
         name = print_var_name(tensor_to_save)
 
