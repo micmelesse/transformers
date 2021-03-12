@@ -513,7 +513,7 @@ class T5Attention(nn.Module):
         #     scores
         # )  # (batch_size, n_heads, seq_length, key_length)
         attn_weights=scores.float()
-        save_tensor(attn_weights, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:attn_weights")
+        save_tensor(attn_weights, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:attn_weights_before_dropout")
         attn_weights = F.dropout(
             attn_weights, p=self.dropout, training=self.training
         )  # (batch_size, n_heads, seq_length, key_length)
