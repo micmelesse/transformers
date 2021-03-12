@@ -470,16 +470,19 @@ class T5Attention(nn.Module):
 
         # get query states
         query_states = shape(self.q(hidden_states))  # (batch_size, n_heads, seq_length, dim_per_head)
+        query_states = torch.ones(query_states.shape).cuda()
         save_tensor(query_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:query_states")
 
         # get key/value states
         key_states = project(
             hidden_states, self.k, key_value_states, past_key_value[0] if past_key_value is not None else None
         )
+        key_states = torch.ones(key_states.shape).cuda()
         save_tensor(key_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:key_states")
         value_states = project(
             hidden_states, self.v, key_value_states, past_key_value[1] if past_key_value is not None else None
         )
+        value_states = torch.ones(value_states.shape).cuda()
         save_tensor(value_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:value_states")
 
         # compute scores
