@@ -366,4 +366,5 @@ def _mp_fn(index):
 
 if __name__ == "__main__":
     torch.set_deterministic(True)
+    torch.manual_seed(1234)
     main()
