@@ -514,9 +514,10 @@ class T5Attention(nn.Module):
         # )  # (batch_size, n_heads, seq_length, key_length)
         attn_weights=scores.float()
         save_tensor(attn_weights, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:attn_weights_before_dropout")
-        attn_weights = F.dropout(
-            attn_weights, p=self.dropout, training=self.training
-        )  # (batch_size, n_heads, seq_length, key_length)
+        # attn_weights = F.dropout(
+        #     attn_weights, p=self.dropout, training=self.training
+        # )  # (batch_size, n_heads, seq_length, key_length)
+        attn_weights = attn_weights 
         save_tensor(attn_weights, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:attn_weights_after_droput")
 
         # Mask heads if we want to
@@ -526,7 +527,7 @@ class T5Attention(nn.Module):
         attn_output = unshape(torch.matmul(attn_weights, value_states))  # (batch_size, seq_length, dim)
         attn_output = self.o(attn_output)
         save_tensor(attn_output, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:attn_output")
-        exit()
+        # exit()
 
         present_key_value_state = (key_states, value_states) if (self.is_decoder and use_cache) else None
         outputs = (attn_output,) + (present_key_value_state,) + (position_bias,)
