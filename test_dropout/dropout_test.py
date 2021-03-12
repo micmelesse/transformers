@@ -3,6 +3,13 @@ from torch import nn
 from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 
+# load tracer
+import importlib.util
+spec = importlib.util.spec_from_file_location("tracer", "/dockerx/transformers/scripts/amd/tracer.py")
+tracer = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(tracer)
+
+
 torch.set_deterministic(True)
 torch.manual_seed(1234)
 
@@ -13,4 +20,4 @@ output = F.dropout(
     attn_weights, p=0.1, training=True
 )
 
-torch.save(output, 'dropout_output.pt')
+tracer.save_tensor(output, 'dropout_output')

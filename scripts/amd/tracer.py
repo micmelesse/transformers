@@ -19,9 +19,13 @@ def print_var_name(variable):
             return name
 
 
-def init_hostdir():
+def set_hostname():
     global host_name
     host_name = socket.gethostname()
+
+
+def init_hostdir():
+    set_hostname()
     if os.path.exists(host_name):
         print(host_name, "exists")
         # if yes_or_no("Do you want to delete existing folder, " + host_name):
@@ -33,6 +37,7 @@ def init_hostdir():
 
 
 def save_tensor(tensor_to_save, name=None):
+    init_hostdir()
     if name == None:
         name = print_var_name(tensor_to_save)
 
