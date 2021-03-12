@@ -1,0 +1,3 @@
+AMD_FOLDER_PATH=ixt-sjc2-04
+NV_FOLDER_PATH=ixt-sjc2-05
+python3 compare_dumps.py $AMD_FOLDER_PATH $NV_FOLDER_PATH
