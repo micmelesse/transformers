@@ -5,7 +5,6 @@ alias drun='sudo docker run -it --network=host --device=/dev/kfd --device=/dev/d
 WORK_DIR='-w /dockerx/transformers'
 # WORK_DIR='-w /root/transformers'
 
-
 # IMAGE_NAME=rocm/pytorch:rocm4.0_ubuntu18.04_py3.6_pytorch_1.7.0_apex_c1e88fa
 # IMAGE_NAME=rocm/tensorflow:rocm4.0.1-tf2.3-dev
 # IMAGE_NAME=rocm/pytorch:rocm4.0_ubuntu18.04_py3.6_pytorch
@@ -16,7 +15,9 @@ IMAGE_NAME=compute-artifactory.amd.com:5000/rocm-plus-docker/framework/compute-r
 # CONTAINER_NAME=${IMAGE_NAME}_container
 CONTAINER_NAME=zero_container
 
-drun -d --name $CONTAINER_NAME $WORK_DIR $VOLUMES $IMAGE_NAME
-# drun -d $WORK_DIR $VOLUMES $IMAGE_NAME
+CONTAINER_ID=$(drun -d $WORK_DIR $VOLUMES $IMAGE_NAME)
+echo "CONTAINER_ID: $CONTAINER_ID"
 # docker cp scripts/amd $CONTAINER_NAME:/root/transformers/scripts
-docker attach $CONTAINER_NAME
+docker attach $CONTAINER_ID
+docker stop $CONTAINER_ID
+docker rm $CONTAINER_ID
