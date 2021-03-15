@@ -2,7 +2,8 @@
 alias drun='sudo docker run -it --network=host --device=/dev/kfd --device=/dev/dri --group-add video --cap-add=SYS_PTRACE --security-opt seccomp=unconfined -v $HOME/dockerx:/dockerx --ipc=host --shm-size=64G'
 
 # VOLUMES="-v $HOME/dockerx:/dockerx"
-WORK_DIR='-w /root/transformers'
+WORK_DIR='-w /dockerx/transformers'
+# WORK_DIR='-w /root/transformers'
 
 
 # IMAGE_NAME=rocm/pytorch:rocm4.0_ubuntu18.04_py3.6_pytorch_1.7.0_apex_c1e88fa
@@ -17,5 +18,5 @@ CONTAINER_NAME=zero_container
 
 drun -d --name $CONTAINER_NAME $WORK_DIR $VOLUMES $IMAGE_NAME
 # drun -d $WORK_DIR $VOLUMES $IMAGE_NAME
-docker cp scripts/amd $CONTAINER_NAME:/root/transformers/scripts
+# docker cp scripts/amd $CONTAINER_NAME:/root/transformers/scripts
 docker attach $CONTAINER_NAME
