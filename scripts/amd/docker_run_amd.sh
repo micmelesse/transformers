@@ -7,10 +7,11 @@ WORK_DIR='-w /dockerx/transformers'
 
 # IMAGE_NAME=rocm/pytorch:rocm4.0_ubuntu18.04_py3.6_pytorch_1.7.0_apex_c1e88fa
 # IMAGE_NAME=rocm/tensorflow:rocm4.0.1-tf2.3-dev
-# IMAGE_NAME=rocm/pytorch:rocm4.0_ubuntu18.04_py3.6_pytorch
+IMAGE_NAME=rocm/pytorch:rocm4.0_ubuntu18.04_py3.6_pytorch
+# IMAGE_NAME=rocm/pytorch:rocm4.0.1_ubuntu18.04_py3.6_pytorch
 # IMAGE_NAME=rocm/pytorch-private:rocm4.1rel_ub18_rocm_41_internal_pytorch_bnorm_patch_SSD_updated
 # IMAGE_NAME=zero
-IMAGE_NAME=compute-artifactory.amd.com:5000/rocm-plus-docker/framework/compute-rocm-rel-4.1:21_ubuntu18.04_py3.6_pytorch_rocm4.1_internal_testing_169a263_30
+# IMAGE_NAME=compute-artifactory.amd.com:5000/rocm-plus-docker/framework/compute-rocm-rel-4.1:21_ubuntu18.04_py3.6_pytorch_rocm4.1_internal_testing_169a263_30
 
 # CONTAINER_NAME=${IMAGE_NAME}_container
 CONTAINER_NAME=zero_container
