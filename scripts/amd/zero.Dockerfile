@@ -1,6 +1,5 @@
 # Select base Image
-# FROM rocm/pytorch:rocm4.0.1_ubuntu18.04_py3.6_pytorch
-FROM compute-artifactory.amd.com:5000/rocm-plus-docker/framework/compute-rocm-rel-4.1:21_ubuntu18.04_py3.6_pytorch_rocm4.1_internal_testing_169a263_30
+FROM rocm/pytorch:rocm4.0.1_ubuntu18.04_py3.6_pytorch
 
 # Install dependencies
 RUN apt update && apt install -y \
