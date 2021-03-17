@@ -1,5 +1,5 @@
 export BS=80
-echo "w/ --deepspeed ds_config.json (stage 2 w/o cpu offloading)"
+echo "w/ --deepspeed ds_config.json (stage 2 with cpu offloading)"
 USE_TF=0 python -m torch.distributed.launch --nproc_per_node=2 \
     examples/seq2seq/run_translation.py \
     --model_name_or_path t5-large \
@@ -17,6 +17,6 @@ USE_TF=0 python -m torch.distributed.launch --nproc_per_node=2 \
     --max_train_samples 500 \
     --max_val_samples 500 \
     --logging_steps 1 \
-    --deepspeed "scripts/amd/ds_config_cpu_offload_off.json" \
+    --deepspeed "scripts/amd/ds_config_cpu_offload_on.json" \
     2>&1 | tee log_baseline.txt
 
