@@ -1,5 +1,5 @@
 # set path
-DOCKERFILE_PATH=scripts/amd/zero.Dockerfile
+DOCKERFILE_PATH=scripts/amd/huggingface_zero.Dockerfile
 
 # get tag
 DOCKERFILE_NAME=$(basename $DOCKERFILE_PATH)
