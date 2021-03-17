@@ -14,12 +14,9 @@ WORK_DIR='-w /dockerx/transformers'
 # IMAGE_NAME=compute-artifactory.amd.com:5000/rocm-plus-docker/framework/compute-rocm-rel-4.1:21_ubuntu18.04_py3.6_pytorch_rocm4.1_internal_testing_169a263_30
 IMAGE_NAME=rraminen/deepspeed:DeepSpeed_Megatron-LM-GPT2_bingBERT_rocm4.0
 
-# CONTAINER_NAME=${IMAGE_NAME}_container
-CONTAINER_NAME=zero_container
-
 CONTAINER_ID=$(drun -d $WORK_DIR $VOLUMES $IMAGE_NAME)
 echo "CONTAINER_ID: $CONTAINER_ID"
-# docker cp scripts/amd $CONTAINER_NAME:/root/transformers/scripts
+# docker cp scripts/amd $CONTAINER_ID:/root/transformers/scripts
 docker attach $CONTAINER_ID
 docker stop $CONTAINER_ID
 docker rm $CONTAINER_ID
