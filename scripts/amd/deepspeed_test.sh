@@ -18,5 +18,5 @@ USE_TF=0 python -m torch.distributed.launch --nproc_per_node=2 \
     --max_val_samples 500 \
     --logging_steps 1 \
     --deepspeed "scripts/amd/ds_config_cpu_offload_on.json" \
-    2>&1 | tee log_baseline.txt
+    2>&1 | tee log_deepspeed_cpu_offload_on.txt
 
