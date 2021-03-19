@@ -6,17 +6,11 @@ RUN apt update && apt install -y \
     unzip 
 RUN pip3 install regex sacremoses filelock gitpython rouge_score sacrebleu datasets fairscale
 
-# install transformers
-RUN cd /root &&\
-    git clone https://github.com/huggingface/transformers &&\
-    cd transformers &&\
-    pip install -e .
+# copy repo to workspace
+WORKDIR /workspace
+COPY . transformers/
+RUN cd transformers/ && \
+    python3 -m pip install --no-cache-dir .
 
 # set work dir
-WORKDIR /root/transformers
-
-
-
-
-
-
+WORKDIR /workspace/transformers
