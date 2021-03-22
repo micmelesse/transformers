@@ -14,3 +14,7 @@ RUN cd transformers/ && \
 
 # set work dir
 WORKDIR /workspace/transformers
+
+# download models
+RUN transformers-cli download t5-small
+RUN transformers-cli download t5-large
