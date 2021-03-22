@@ -13,7 +13,7 @@ IMAGE_NAME=huggingface_zero
 
 CONTAINER_ID=$(drun -d $WORK_DIR $VOLUMES $IMAGE_NAME)
 echo "CONTAINER_ID: $CONTAINER_ID"
-docker cp scripts/amd $CONTAINER_ID:/workspace/transformers/scripts
+docker cp . $CONTAINER_ID:/workspace/transformers
 docker attach $CONTAINER_ID
 docker stop $CONTAINER_ID
 docker rm $CONTAINER_ID
