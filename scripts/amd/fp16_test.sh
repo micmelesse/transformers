@@ -1,6 +1,6 @@
-export BS=60
-echo "w/ --sharded_ddp --fp16"
-USE_TF=0 python -m torch.distributed.launch --nproc_per_node=2 \
+export BS=2
+echo "w/ --fp16"
+USE_TF=0 python -m torch.distributed.launch --nproc_per_node=1 \
     examples/seq2seq/run_translation.py \
     --model_name_or_path t5-large \
     --do_train \
@@ -18,4 +18,6 @@ USE_TF=0 python -m torch.distributed.launch --nproc_per_node=2 \
     --max_val_samples 500 \
     --logging_steps 1 \
     --fp16 \
+    --fp16_backend "apex" \
+    --config_name "t5-large-local/config.json" \
     2>&1 | tee log_fp16.txt

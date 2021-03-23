@@ -1,8 +1,8 @@
 alias drun='sudo docker run -it --network=host --device=/dev/kfd --device=/dev/dri --group-add video --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --ipc=host --shm-size=64G'
 
 VOLUMES="-v $HOME/dockerx:/dockerx"
-# WORK_DIR='-w /dockerx/transformers'
-WORK_DIR='-w /workspace/transformers'
+WORK_DIR='-w /dockerx/transformers'
+# WORK_DIR='-w /workspace/transformers'
 
 # IMAGE_NAME=rocm/pytorch:rocm4.0_ubuntu18.04_py3.6_pytorch_1.7.0_apex_c1e88fa
 # IMAGE_NAME=rocm/tensorflow:rocm4.0.1-tf2.3-dev

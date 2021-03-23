@@ -17,4 +17,7 @@ WORKDIR /workspace/transformers
 
 # download models
 RUN transformers-cli download t5-small
+RUN transformers-cli download t5-base
 RUN transformers-cli download t5-large
+# RUN transformers-cli download t5-3b
+# RUN transformers-cli download t5-11b
