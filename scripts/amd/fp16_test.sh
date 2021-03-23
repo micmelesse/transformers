@@ -1,5 +1,6 @@
 export BS=2
 echo "w/ --fp16"
+cp scripts/amd/tracer.py src/transformers
 USE_TF=0 python -m torch.distributed.launch --nproc_per_node=1 \
     examples/seq2seq/run_translation.py \
     --model_name_or_path t5-large \
@@ -19,5 +20,5 @@ USE_TF=0 python -m torch.distributed.launch --nproc_per_node=1 \
     --logging_steps 1 \
     --fp16 \
     --fp16_backend "apex" \
-    --config_name "t5-large-local/config.json" \
+    --config_name "scripts/amd/t5_large_config_no_dropout.json" \
     2>&1 | tee log_fp16.txt
