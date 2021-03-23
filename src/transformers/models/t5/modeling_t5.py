@@ -44,6 +44,7 @@ from ...utils import logging
 from ...utils.model_parallel_utils import assert_device_map, get_device_map
 from .configuration_t5 import T5Config
 
+from ...tracer import *
 
 logger = logging.get_logger(__name__)
 
@@ -258,6 +259,7 @@ class T5DenseReluDense(nn.Module):
         hidden_states = F.relu(hidden_states)
         hidden_states = self.dropout(hidden_states)
         hidden_states = self.wo(hidden_states)
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerFF:T5DenseReluDense:hidden_states_after_wo")
         return hidden_states
 
 
@@ -296,6 +298,7 @@ class T5LayerFF(nn.Module):
 
     def forward(self, hidden_states):
         forwarded_states = self.layer_norm(hidden_states)
+        save_tensor(forwarded_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerFF:forwarded_states_before_DenseReluDense")
         forwarded_states = self.DenseReluDense(forwarded_states)
         hidden_states = hidden_states + self.dropout(forwarded_states)
         return hidden_states
@@ -421,6 +424,7 @@ class T5Attention(nn.Module):
         # Input is (batch_size, seq_length, dim)
         # Mask is (batch_size, key_length) (non-causal) or (batch_size, key_length, key_length)
         # past_key_value[0] is (batch_size, n_heads, q_len - 1, dim_per_head)
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:hidden_states_before_anyop")
         batch_size, seq_length = hidden_states.shape[:2]
 
         real_seq_length = seq_length
@@ -466,19 +470,23 @@ class T5Attention(nn.Module):
 
         # get query states
         query_states = shape(self.q(hidden_states))  # (batch_size, n_heads, seq_length, dim_per_head)
+        save_tensor(query_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:query_states")
 
         # get key/value states
         key_states = project(
             hidden_states, self.k, key_value_states, past_key_value[0] if past_key_value is not None else None
         )
+        save_tensor(key_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:key_states")
         value_states = project(
             hidden_states, self.v, key_value_states, past_key_value[1] if past_key_value is not None else None
         )
+        save_tensor(value_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:value_states")
 
         # compute scores
         scores = torch.matmul(
             query_states, key_states.transpose(3, 2)
         )  # equivalent of torch.einsum("bnqd,bnkd->bnqk", query_states, key_states), compatible with onnx op>9
+        save_tensor(scores, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:scores")
 
         if position_bias is None:
             if not self.has_relative_attention_bias:
@@ -496,13 +504,17 @@ class T5Attention(nn.Module):
             if mask is not None:
                 position_bias = position_bias + mask  # (batch_size, n_heads, seq_length, key_length)
 
+        save_tensor(position_bias, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:position_bias")
         scores += position_bias
+        save_tensor(scores, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:scores_before_softmax")
         attn_weights = F.softmax(scores.float(), dim=-1).type_as(
             scores
         )  # (batch_size, n_heads, seq_length, key_length)
+        save_tensor(attn_weights, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:attn_weights_before_dropout")
         attn_weights = F.dropout(
             attn_weights, p=self.dropout, training=self.training
         )  # (batch_size, n_heads, seq_length, key_length)
+        save_tensor(attn_weights, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:attn_weights_after_droput")
 
         # Mask heads if we want to
         if layer_head_mask is not None:
@@ -510,6 +522,7 @@ class T5Attention(nn.Module):
 
         attn_output = unshape(torch.matmul(attn_weights, value_states))  # (batch_size, seq_length, dim)
         attn_output = self.o(attn_output)
+        save_tensor(attn_output, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:T5Attention:attn_output")
 
         present_key_value_state = (key_states, value_states) if (self.is_decoder and use_cache) else None
         outputs = (attn_output,) + (present_key_value_state,) + (position_bias,)
@@ -536,7 +549,9 @@ class T5LayerSelfAttention(nn.Module):
         use_cache=False,
         output_attentions=False,
     ):
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:hidden_states_before_anyop")
         normed_hidden_states = self.layer_norm(hidden_states)
+        save_tensor(normed_hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:normed_hidden_states_after_layernom")
         attention_output = self.SelfAttention(
             normed_hidden_states,
             mask=attention_mask,
@@ -546,7 +561,9 @@ class T5LayerSelfAttention(nn.Module):
             use_cache=use_cache,
             output_attentions=output_attentions,
         )
+        save_tensor(attention_output[0], "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:attention_output_before_dropout")
         hidden_states = hidden_states + self.dropout(attention_output[0])
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:T5LayerSelfAttention:hidden_states_output_after_dropout")
         outputs = (hidden_states,) + attention_output[1:]  # add attentions if we output them
         return outputs
 
@@ -614,6 +631,7 @@ class T5Block(nn.Module):
         return_dict=True,
     ):
 
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_before_any_ops")
         if past_key_value is not None:
             assert self.is_decoder, "Only decoder can use `past_key_values`"
             expected_num_past_key_values = 2 if encoder_hidden_states is None else 4
@@ -640,6 +658,7 @@ class T5Block(nn.Module):
             output_attentions=output_attentions,
         )
         hidden_states, present_key_value_state = self_attention_outputs[:2]
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_self_attention_outputs")
         attention_outputs = self_attention_outputs[2:]  # Keep self-attention outputs and relative position weights
 
         # clamp inf values to enable fp16 training
@@ -647,6 +666,7 @@ class T5Block(nn.Module):
             clamp_value = torch.finfo(hidden_states.dtype).max - 1000
             hidden_states = torch.clamp(hidden_states, min=-clamp_value, max=clamp_value)
 
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_self_attention_outputs_clamped")
         do_cross_attention = self.is_decoder and encoder_hidden_states is not None
         if do_cross_attention:
             # the actual query length is unknown for cross attention
@@ -669,10 +689,12 @@ class T5Block(nn.Module):
             )
             hidden_states = cross_attention_outputs[0]
 
+            save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_cross_attention_outputs")
             # clamp inf values to enable fp16 training
             if hidden_states.dtype == torch.float16 and torch.isinf(hidden_states).any():
                 clamp_value = torch.finfo(hidden_states.dtype).max - 1000
                 hidden_states = torch.clamp(hidden_states, min=-clamp_value, max=clamp_value)
+            save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_cross_attention_outputs_clamped")
 
             # Combine self attn and cross attn key value states
             if present_key_value_state is not None:
@@ -682,13 +704,16 @@ class T5Block(nn.Module):
             attention_outputs = attention_outputs + cross_attention_outputs[2:]
 
         # Apply Feed Forward layer
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_before_T5LayerFF")
         hidden_states = self.layer[-1](hidden_states)
 
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_T5LayerFF")
         # clamp inf values to enable fp16 training
         if hidden_states.dtype == torch.float16 and torch.isinf(hidden_states).any():
             clamp_value = torch.finfo(hidden_states.dtype).max - 1000
             hidden_states = torch.clamp(hidden_states, min=-clamp_value, max=clamp_value)
 
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:T5Block:hidden_states_after_T5LayerFF_clamped")
         outputs = (hidden_states,)
 
         outputs = outputs + (present_key_value_state,) + attention_outputs
@@ -853,6 +878,7 @@ class T5Stack(T5PreTrainedModel):
         output_hidden_states=None,
         return_dict=None,
     ):
+        save_tensor(input_ids, "modeling_t5:T5ForConditionalGeneration:T5Stack:input_ids")
         # Model parallel
         if self.model_parallel:
             torch.cuda.set_device(self.first_device)
@@ -922,7 +948,9 @@ class T5Stack(T5PreTrainedModel):
         position_bias = None
         encoder_decoder_position_bias = None
 
+        save_tensor(inputs_embeds, "modeling_t5:T5ForConditionalGeneration:T5Stack:inputs_embeds_before_layers_before_dropout")
         hidden_states = self.dropout(inputs_embeds)
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:hidden_states_before_layers_after_dropout")
 
         for i, (layer_module, past_key_value) in enumerate(zip(self.block, past_key_values)):
             layer_head_mask = head_mask[i]
@@ -964,6 +992,7 @@ class T5Stack(T5PreTrainedModel):
             # layer_outputs is a tuple with:
             # hidden-states, key-value-states, (self-attention weights), (self-attention position bias), (cross-attention weights), (cross-attention position bias)
             hidden_states, present_key_value_state = layer_outputs[:2]
+            save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:T5Stack:layer_outputs_hidden_states_" + str(i))
 
             # We share the position biases between the layers - the first layer store them
             # layer_outputs = hidden-states, key-value-states (self-attention weights),
@@ -1496,6 +1525,8 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
                 warnings.warn(__HEAD_MASK_WARNING_MSG, FutureWarning)
                 decoder_head_mask = head_mask
 
+        init_hostdir()
+        save_tensor(input_ids, "modeling_t5:T5ForConditionalGeneration:input_ids")
         # Encode if needed (training, first prediction pass)
         if encoder_outputs is None:
             # Convert encoder inputs in embeddings if needed
@@ -1516,6 +1547,8 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
             )
 
         hidden_states = encoder_outputs[0]
+        save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:hidden_states_after_encoder_outputs")
+        exit()
 
         if self.model_parallel:
             torch.cuda.set_device(self.decoder.first_device)
