@@ -1,4 +1,4 @@
-export BS=2
+export BS=80
 echo "w/ --fp16"
 cp scripts/amd/tracer.py src/transformers
 USE_TF=0 python -m torch.distributed.launch --nproc_per_node=1 \
@@ -11,8 +11,8 @@ USE_TF=0 python -m torch.distributed.launch --nproc_per_node=1 \
     --dataset_name wmt16 \
     --dataset_config_name ro-en \
     --output_dir /tmp/tst-translation \
-    --per_device_train_batch_size=4 \
-    --per_device_eval_batch_size=4 \
+    --per_device_train_batch_size=$BS \
+    --per_device_eval_batch_size=$BS \
     --overwrite_output_dir \
     --predict_with_generate \
     --max_train_samples 500 \
