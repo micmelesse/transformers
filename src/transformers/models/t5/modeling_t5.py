@@ -1526,6 +1526,7 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
                 decoder_head_mask = head_mask
 
         init_hostdir()
+        print(input_ids.shape)
         save_tensor(input_ids, "modeling_t5:T5ForConditionalGeneration:input_ids")
         # Encode if needed (training, first prediction pass)
         if encoder_outputs is None:

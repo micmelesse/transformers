@@ -3,5 +3,5 @@
 # pip uninstall -y enum34
 
 # default requirements
-pip3 install regex sacremoses filelock gitpython rouge_score sacrebleu gitpython datasets
+pip3 install regex sacremoses filelock gitpython rouge_score gitpython datasets
 pip3 install sacrebleu --upgrade
