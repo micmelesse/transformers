@@ -20,18 +20,32 @@ def print_var_name(variable):
 
 
 def init_hostdir():
+    if not use_tracer():
+        return
+
     host_name = socket.gethostname()
     if os.path.exists(host_name):
         print(host_name, "exists")
         # if yes_or_no("Do you want to delete existing folder, " + host_name):
-        print("deleting existing", host_name, "directory")
-        shutil.rmtree(host_name)
+        # print("deleting existing", host_name, "directory")
+        # shutil.rmtree(host_name)
         os.mkdir(host_name)
     else:
         os.mkdir(host_name)
 
 
+def use_tracer():
+    USE_TRACER = os.environ.get('USE_TRACER')
+    if USE_TRACER is not None:
+        return bool(int(USE_TRACER))
+    else:
+        return False
+
+
 def save_tensor(tensor_to_save, name=None):
+    if not use_tracer():
+        return
+
     host_name = socket.gethostname()
     if name == None:
         name = print_var_name(tensor_to_save)
@@ -40,3 +54,10 @@ def save_tensor(tensor_to_save, name=None):
     device_id = 0
 
     torch.save(tensor_to_save, os.path.join(host_name, str(name) + "_" + str(device_id) + '.pt'))
+
+
+def exit_model():
+    if not use_tracer():
+        return
+
+    exit()

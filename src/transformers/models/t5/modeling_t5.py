@@ -1549,7 +1549,7 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
 
         hidden_states = encoder_outputs[0]
         save_tensor(hidden_states, "modeling_t5:T5ForConditionalGeneration:hidden_states_after_encoder_outputs")
-        exit()
+        exit_model()
 
         if self.model_parallel:
             torch.cuda.set_device(self.decoder.first_device)
