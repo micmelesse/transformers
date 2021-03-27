@@ -1,0 +1,224 @@
+[2021-03-27 07:13:51,134] [INFO] [distributed.py:47:init_distributed] Initializing torch distributed with backend: nccl
+[2021-03-27 07:13:51,242] [INFO] [distributed.py:47:init_distributed] Initializing torch distributed with backend: nccl
+WARNING:__main__:You're running a t5 model but didn't provide a source prefix, which is expected, e.g. with `--source_prefix 'translate English to German: ' `
+WARNING:__main__:Process rank: 1, device: cuda:1, n_gpu: 1distributed training: True, 16-bits training: False
+WARNING:__main__:You're running a t5 model but didn't provide a source prefix, which is expected, e.g. with `--source_prefix 'translate English to German: ' `
+WARNING:__main__:Process rank: 0, device: cuda:0, n_gpu: 1distributed training: True, 16-bits training: False
+INFO:__main__:Training/evaluation parameters Seq2SeqTrainingArguments(output_dir='/tmp/tst-translation', overwrite_output_dir=True, do_train=True, do_eval=True, do_predict=False, evaluation_strategy=<IntervalStrategy.NO: 'no'>, prediction_loss_only=False, per_device_train_batch_size=80, per_device_eval_batch_size=80, per_gpu_train_batch_size=None, per_gpu_eval_batch_size=None, gradient_accumulation_steps=1, eval_accumulation_steps=None, learning_rate=5e-05, weight_decay=0.0, adam_beta1=0.9, adam_beta2=0.999, adam_epsilon=1e-08, max_grad_norm=1.0, num_train_epochs=3.0, max_steps=-1, lr_scheduler_type=<SchedulerType.LINEAR: 'linear'>, warmup_ratio=0.0, warmup_steps=0, logging_dir='runs/Mar27_07-13-50_ixt-sjc2-04', logging_strategy=<IntervalStrategy.STEPS: 'steps'>, logging_first_step=False, logging_steps=1, save_strategy=<IntervalStrategy.STEPS: 'steps'>, save_steps=500, save_total_limit=None, no_cuda=False, seed=42, fp16=False, fp16_opt_level='O1', fp16_backend='auto', fp16_full_eval=False, local_rank=0, tpu_num_cores=None, tpu_metrics_debug=False, debug=False, dataloader_drop_last=False, eval_steps=1, dataloader_num_workers=0, past_index=-1, run_name='/tmp/tst-translation', disable_tqdm=False, remove_unused_columns=True, label_names=None, load_best_model_at_end=False, metric_for_best_model=None, greater_is_better=None, ignore_data_skip=False, sharded_ddp=[], deepspeed='scripts/amd/ds_config_cpu_offload_on.json', label_smoothing_factor=0.0, adafactor=False, group_by_length=False, report_to=['tensorboard'], ddp_find_unused_parameters=None, dataloader_pin_memory=True, skip_memory_metrics=False, sortish_sampler=False, predict_with_generate=True)
+Downloading:   0%|          | 0.00/1.41k [00:00<?, ?B/s]Downloading: 2.81kB [00:00, 3.43MB/s]                   
+Downloading:   0%|          | 0.00/1.41k [00:00<?, ?B/s]Downloading: 2.81kB [00:00, 3.10MB/s]                   
+Downloading:   0%|          | 0.00/1.52k [00:00<?, ?B/s]Downloading: 3.19kB [00:00, 1.73MB/s]                   
+Downloading:   0%|          | 0.00/1.52k [00:00<?, ?B/s]Downloading: 3.19kB [00:00, 4.63MB/s]                   
+Downloading:   0%|          | 0.00/8.75k [00:00<?, ?B/s]Downloading: 41.1kB [00:00, 12.8MB/s]                   
+Downloading and preparing dataset wmt16/ro-en (download: Unknown size, generated: Unknown size, post-processed: Unknown size, total: Unknown size) to /root/.cache/huggingface/datasets/wmt16/ro-en/1.0.0/9dc00622c30446e99c4c63d12a484ea4fb653f2f37c867d6edcec839d7eae50f...
+Downloading:   0%|          | 0.00/8.75k [00:00<?, ?B/s]Downloading: 41.1kB [00:00, 30.0MB/s]                   
+Downloading:   0%|          | 0.00/225M [00:00<?, ?B/s]Downloading:   2%|▏         | 3.84M/225M [00:00<00:05, 38.4MB/s]Downloading:   4%|▍         | 8.53M/225M [00:00<00:04, 43.4MB/s]Downloading:   7%|▋         | 15.8M/225M [00:00<00:03, 56.8MB/s]Downloading:  10%|█         | 22.8M/225M [00:00<00:03, 61.9MB/s]Downloading:  13%|█▎        | 30.1M/225M [00:00<00:02, 65.9MB/s]Downloading:  17%|█▋        | 37.4M/225M [00:00<00:02, 68.5MB/s]Downloading:  20%|█▉        | 44.8M/225M [00:00<00:02, 70.3MB/s]Downloading:  23%|██▎       | 52.2M/225M [00:00<00:02, 71.4MB/s]Downloading:  26%|██▋       | 59.6M/225M [00:00<00:02, 72.1MB/s]Downloading:  30%|███       | 68.4M/225M [00:01<00:02, 77.2MB/s]Downloading:  35%|███▌      | 78.9M/225M [00:01<00:01, 85.6MB/s]Downloading:  40%|███▉      | 89.3M/225M [00:01<00:01, 91.1MB/s]Downloading:  44%|████▍     | 99.8M/225M [00:01<00:01, 95.3MB/s]Downloading:  49%|████▉     | 110M/225M [00:01<00:01, 97.4MB/s] Downloading:  54%|█████▎    | 120M/225M [00:01<00:01, 99.6MB/s]Downloading:  58%|█████▊    | 131M/225M [00:01<00:00, 101MB/s] Downloading:  63%|██████▎   | 142M/225M [00:01<00:00, 103MB/s]Downloading:  68%|██████▊   | 152M/225M [00:01<00:00, 103MB/s]Downloading:  72%|███████▏  | 163M/225M [00:01<00:00, 104MB/s]Downloading:  77%|███████▋  | 173M/225M [00:02<00:00, 104MB/s]Downloading:  82%|████████▏ | 184M/225M [00:02<00:00, 104MB/s]Downloading:  86%|████████▋ | 194M/225M [00:02<00:00, 105MB/s]Downloading:  91%|█████████ | 205M/225M [00:02<00:00, 97.6MB/s]Downloading:  96%|█████████▌| 215M/225M [00:02<00:00, 99.5MB/s]Downloading: 100%|██████████| 225M/225M [00:02<00:00, 89.2MB/s]
+Downloading:   0%|          | 0.00/23.5M [00:00<?, ?B/s]Downloading:   0%|          | 16.4k/23.5M [00:00<04:31, 86.5kB/s]Downloading:   0%|          | 45.1k/23.5M [00:00<03:07, 125kB/s] Downloading:   0%|          | 111k/23.5M [00:00<01:43, 225kB/s] Downloading:   1%|          | 258k/23.5M [00:00<00:52, 444kB/s]Downloading:   2%|▏         | 537k/23.5M [00:00<00:28, 814kB/s]Downloading:   5%|▍         | 1.08M/23.5M [00:01<00:14, 1.51MB/s]Downloading:   9%|▉         | 2.19M/23.5M [00:01<00:07, 2.94MB/s]Downloading:  19%|█▊        | 4.37M/23.5M [00:01<00:03, 5.66MB/s]Downloading:  32%|███▏      | 7.50M/23.5M [00:01<00:01, 9.06MB/s]Downloading:  45%|████▌     | 10.6M/23.5M [00:01<00:01, 11.3MB/s]Downloading:  58%|█████▊    | 13.6M/23.5M [00:02<00:00, 12.7MB/s]Downloading:  70%|███████   | 16.5M/23.5M [00:02<00:00, 14.9MB/s]Downloading:  77%|███████▋  | 18.0M/23.5M [00:02<00:00, 14.7MB/s]Downloading:  84%|████████▍ | 19.7M/23.5M [00:02<00:00, 14.1MB/s]Downloading:  94%|█████████▍| 22.0M/23.5M [00:02<00:00, 15.0MB/s]Downloading: 100%|██████████| 23.5M/23.5M [00:02<00:00, 8.68MB/s]
+Downloading:   0%|          | 0.00/38.7M [00:00<?, ?B/s]Downloading:   8%|▊         | 3.08M/38.7M [00:00<00:01, 30.6MB/s]Downloading:  18%|█▊        | 6.88M/38.7M [00:00<00:00, 34.9MB/s]Downloading:  30%|██▉       | 11.5M/38.7M [00:00<00:00, 39.3MB/s]Downloading:  41%|████▏     | 16.0M/38.7M [00:00<00:00, 41.0MB/s]Downloading:  52%|█████▏    | 20.1M/38.7M [00:00<00:00, 40.4MB/s]Downloading:  62%|██████▏   | 24.1M/38.7M [00:00<00:00, 35.5MB/s]Downloading:  72%|███████▏  | 27.8M/38.7M [00:00<00:00, 31.7MB/s]Downloading:  88%|████████▊ | 34.1M/38.7M [00:00<00:00, 40.2MB/s]Downloading: 100%|██████████| 38.7M/38.7M [00:00<00:00, 39.6MB/s]
+0 examples [00:00, ? examples/s]1 examples [00:00,  2.18 examples/s]6133 examples [00:00, 14552.74 examples/s]9740 examples [00:00, 18118.97 examples/s]14773 examples [00:00, 26067.67 examples/s]24342 examples [00:00, 44213.75 examples/s]34061 examples [00:01, 58586.82 examples/s]43836 examples [00:01, 69525.18 examples/s]53670 examples [00:01, 77742.66 examples/s]63434 examples [00:01, 83500.97 examples/s]73212 examples [00:01, 87677.70 examples/s]83063 examples [00:01, 90868.56 examples/s]92480 examples [00:01, 73889.16 examples/s]102460 examples [00:01, 80468.76 examples/s]112395 examples [00:01, 85494.57 examples/s]122334 examples [00:01, 89322.26 examples/s]132325 examples [00:02, 92310.88 examples/s]142309 examples [00:02, 94473.95 examples/s]152341 examples [00:02, 96174.55 examples/s]162116 examples [00:02, 77203.06 examples/s]172050 examples [00:02, 82758.51 examples/s]181852 examples [00:02, 86785.22 examples/s]191824 examples [00:02, 90326.17 examples/s]201562 examples [00:02, 92308.31 examples/s]211493 examples [00:02, 94311.85 examples/s]221485 examples [00:03, 95939.62 examples/s]231522 examples [00:03, 97235.38 examples/s]241350 examples [00:03, 77668.14 examples/s]251222 examples [00:03, 82958.32 examples/s]261223 examples [00:03, 87462.43 examples/s]271008 examples [00:03, 90307.97 examples/s]280844 examples [00:03, 92572.04 examples/s]290586 examples [00:03, 93960.62 examples/s]300465 examples [00:03, 95361.39 examples/s]310315 examples [00:04, 96279.33 examples/s]320043 examples [00:04, 77140.83 examples/s]330000 examples [00:04, 82607.84 examples/s]340000 examples [00:04, 87023.44 examples/s]350000 examples [00:04, 90145.09 examples/s]360000 examples [00:04, 92529.22 examples/s]370018 examples [00:04, 94707.84 examples/s]380000 examples [00:04, 95704.44 examples/s]390000 examples [00:04, 95931.93 examples/s]399689 examples [00:05, 68180.03 examples/s]407678 examples [00:05, 59506.03 examples/s]414575 examples [00:05, 54783.93 examples/s]420718 examples [00:05, 51572.25 examples/s]426317 examples [00:05, 50405.05 examples/s]431644 examples [00:05, 42036.13 examples/s]436332 examples [00:06, 43070.14 examples/s]440929 examples [00:06, 42847.95 examples/s]445605 examples [00:06, 43808.10 examples/s]450146 examples [00:06, 43279.96 examples/s]454626 examples [00:06, 43679.74 examples/s]459215 examples [00:06, 44267.62 examples/s]463703 examples [00:06, 35652.77 examples/s]468429 examples [00:06, 38493.04 examples/s]472663 examples [00:06, 39489.29 examples/s]477416 examples [00:07, 41660.10 examples/s]481750 examples [00:07, 41384.05 examples/s]486550 examples [00:07, 43241.69 examples/s]490969 examples [00:07, 43188.99 examples/s]495734 examples [00:07, 44475.77 examples/s]500233 examples [00:07, 36235.58 examples/s]504975 examples [00:07, 39054.16 examples/s]509728 examples [00:07, 41303.64 examples/s]514061 examples [00:07, 41769.30 examples/s]518779 examples [00:08, 43291.95 examples/s]523220 examples [00:08, 43193.61 examples/s]527984 examples [00:08, 44475.36 examples/s]532492 examples [00:08, 43915.75 examples/s]536926 examples [00:08, 36550.10 examples/s]541070 examples [00:08, 37785.12 examples/s]545863 examples [00:08, 40479.02 examples/s]550102 examples [00:08, 41006.56 examples/s]554875 examples [00:08, 42904.35 examples/s]559622 examples [00:09, 44218.80 examples/s]564114 examples [00:09, 43903.09 examples/s]568853 examples [00:09, 44918.16 examples/s]573382 examples [00:09, 43983.70 examples/s]578132 examples [00:09, 45006.38 examples/s]582657 examples [00:09, 35625.25 examples/s]587322 examples [00:09, 38368.36 examples/s]591503 examples [00:09, 39270.68 examples/s]596224 examples [00:09, 41433.86 examples/s]600535 examples [00:10, 41629.37 examples/s]605299 examples [00:10, 43339.47 examples/s]610000 examples [00:10, 43175.24 examples/s]                                            0 examples [00:00, ? examples/s]                                0 examples [00:00, ? examples/s]                                Dataset wmt16 downloaded and prepared to /root/.cache/huggingface/datasets/wmt16/ro-en/1.0.0/9dc00622c30446e99c4c63d12a484ea4fb653f2f37c867d6edcec839d7eae50f. Subsequent calls will reuse this data.
+WARNING:datasets.builder:Reusing dataset wmt16 (/root/.cache/huggingface/datasets/wmt16/ro-en/1.0.0/9dc00622c30446e99c4c63d12a484ea4fb653f2f37c867d6edcec839d7eae50f)
+loading configuration file https://huggingface.co/t5-large/resolve/main/config.json from cache at /root/.cache/huggingface/transformers/1adb1f57c3579debfcce7b94ee03f6144e0ff7a0c2825e48b3f9cde9ce290c7d.35a5d3297357a9ea0fccdf170df8d287f1cad2ee810bca042f98c531c0cab2c6
+Model config T5Config {
+  "architectures": [
+    "T5WithLMHeadModel"
+  ],
+  "d_ff": 4096,
+  "d_kv": 64,
+  "d_model": 1024,
+  "decoder_start_token_id": 0,
+  "dropout_rate": 0.1,
+  "eos_token_id": 1,
+  "feed_forward_proj": "relu",
+  "initializer_factor": 1.0,
+  "is_encoder_decoder": true,
+  "layer_norm_epsilon": 1e-06,
+  "model_type": "t5",
+  "n_positions": 512,
+  "num_decoder_layers": 24,
+  "num_heads": 16,
+  "num_layers": 24,
+  "output_past": true,
+  "pad_token_id": 0,
+  "relative_attention_num_buckets": 32,
+  "task_specific_params": {
+    "summarization": {
+      "early_stopping": true,
+      "length_penalty": 2.0,
+      "max_length": 200,
+      "min_length": 30,
+      "no_repeat_ngram_size": 3,
+      "num_beams": 4,
+      "prefix": "summarize: "
+    },
+    "translation_en_to_de": {
+      "early_stopping": true,
+      "max_length": 300,
+      "num_beams": 4,
+      "prefix": "translate English to German: "
+    },
+    "translation_en_to_fr": {
+      "early_stopping": true,
+      "max_length": 300,
+      "num_beams": 4,
+      "prefix": "translate English to French: "
+    },
+    "translation_en_to_ro": {
+      "early_stopping": true,
+      "max_length": 300,
+      "num_beams": 4,
+      "prefix": "translate English to Romanian: "
+    }
+  },
+  "transformers_version": "4.5.0.dev0",
+  "use_cache": true,
+  "vocab_size": 32128
+}
+
+loading configuration file https://huggingface.co/t5-large/resolve/main/config.json from cache at /root/.cache/huggingface/transformers/1adb1f57c3579debfcce7b94ee03f6144e0ff7a0c2825e48b3f9cde9ce290c7d.35a5d3297357a9ea0fccdf170df8d287f1cad2ee810bca042f98c531c0cab2c6
+Model config T5Config {
+  "architectures": [
+    "T5WithLMHeadModel"
+  ],
+  "d_ff": 4096,
+  "d_kv": 64,
+  "d_model": 1024,
+  "decoder_start_token_id": 0,
+  "dropout_rate": 0.1,
+  "eos_token_id": 1,
+  "feed_forward_proj": "relu",
+  "initializer_factor": 1.0,
+  "is_encoder_decoder": true,
+  "layer_norm_epsilon": 1e-06,
+  "model_type": "t5",
+  "n_positions": 512,
+  "num_decoder_layers": 24,
+  "num_heads": 16,
+  "num_layers": 24,
+  "output_past": true,
+  "pad_token_id": 0,
+  "relative_attention_num_buckets": 32,
+  "task_specific_params": {
+    "summarization": {
+      "early_stopping": true,
+      "length_penalty": 2.0,
+      "max_length": 200,
+      "min_length": 30,
+      "no_repeat_ngram_size": 3,
+      "num_beams": 4,
+      "prefix": "summarize: "
+    },
+    "translation_en_to_de": {
+      "early_stopping": true,
+      "max_length": 300,
+      "num_beams": 4,
+      "prefix": "translate English to German: "
+    },
+    "translation_en_to_fr": {
+      "early_stopping": true,
+      "max_length": 300,
+      "num_beams": 4,
+      "prefix": "translate English to French: "
+    },
+    "translation_en_to_ro": {
+      "early_stopping": true,
+      "max_length": 300,
+      "num_beams": 4,
+      "prefix": "translate English to Romanian: "
+    }
+  },
+  "transformers_version": "4.5.0.dev0",
+  "use_cache": true,
+  "vocab_size": 32128
+}
+
+loading file https://huggingface.co/t5-large/resolve/main/spiece.model from cache at /root/.cache/huggingface/transformers/71ee551f54e246045a7b94dd449c33759924b864712e6d235bbba5245c9f6296.3b69006860e7b5d0a63ffdddc01ddcd6b7c318a6f4fd793596552c741734c62d
+loading file https://huggingface.co/t5-large/resolve/main/tokenizer.json from cache at /root/.cache/huggingface/transformers/276094e085ecb12227136f2e755dc1f68be6f5da32df55ebfb104c791fbbc3c1.8627f1bd5d270a9fd2e5a51c8bec3223896587cc3cfe13edeabb0992ab43c529
+loading file https://huggingface.co/t5-large/resolve/main/added_tokens.json from cache at None
+loading file https://huggingface.co/t5-large/resolve/main/special_tokens_map.json from cache at None
+loading file https://huggingface.co/t5-large/resolve/main/tokenizer_config.json from cache at None
+loading weights file https://huggingface.co/t5-large/resolve/main/pytorch_model.bin from cache at /root/.cache/huggingface/transformers/750feca8cedcd171eb121bd47c3ae16924a473d89f334c7d22f83bfa3a6c80f6.62fbd66ec15bdf6e5322f44f1546f0d475cf07a90caca0912ead31408a83a319
+All model checkpoint weights were used when initializing T5ForConditionalGeneration.
+
+All the weights of T5ForConditionalGeneration were initialized from the model checkpoint at t5-large.
+If your task is similar to the task the model of the checkpoint was trained on, you can already use T5ForConditionalGeneration for predictions without further training.
+  0%|          | 0/1 [00:00<?, ?ba/s]100%|██████████| 1/1 [00:00<00:00, 20.16ba/s]
+  0%|          | 0/1 [00:00<?, ?ba/s]100%|██████████| 1/1 [00:00<00:00, 22.99ba/s]
+WARNING:datasets.arrow_dataset:Loading cached processed dataset at /root/.cache/huggingface/datasets/wmt16/ro-en/1.0.0/9dc00622c30446e99c4c63d12a484ea4fb653f2f37c867d6edcec839d7eae50f/cache-7fb94f2f64f23d17.arrow
+WARNING:datasets.arrow_dataset:Loading cached processed dataset at /root/.cache/huggingface/datasets/wmt16/ro-en/1.0.0/9dc00622c30446e99c4c63d12a484ea4fb653f2f37c867d6edcec839d7eae50f/cache-0d5f2b9e2feb366c.arrow
+Downloading:   0%|          | 0.00/2.24k [00:00<?, ?B/s]Downloading: 5.40kB [00:00, 2.37MB/s]                   
+Updating the `scheduler` config from scripts/amd/ds_config_cpu_offload_on.json with other command line arguments
+setting optimizer.params.lr to 5e-05
+setting optimizer.params.betas to [0.9, 0.999]
+setting optimizer.params.eps to 1e-08
+setting optimizer.params.weight_decay to 0.0
+Updating the `scheduler` config from scripts/amd/ds_config_cpu_offload_on.json with other command line arguments
+setting scheduler.params.warmup_max_lr to 5e-05
+setting scheduler.params.warmup_num_steps to 0
+[2021-03-27 07:14:45,152] [INFO] [logging.py:60:log_dist] [Rank 0] DeepSpeed info: version=0.3.13+c4fe427, git-hash=c4fe427, git-branch=master
+[2021-03-27 07:14:46,561] [INFO] [engine.py:77:_initialize_parameter_parallel_groups] data_parallel_size: 2, parameter_parallel_size: 2
+[2021-03-27 07:14:46,636] [INFO] [engine.py:77:_initialize_parameter_parallel_groups] data_parallel_size: 2, parameter_parallel_size: 2
+Traceback (most recent call last):
+  File "examples/seq2seq/run_translation.py", line 562, in <module>
+    main()
+  File "examples/seq2seq/run_translation.py", line 500, in main
+    train_result = trainer.train(resume_from_checkpoint=checkpoint)
+  File "/opt/conda/lib/python3.6/site-packages/transformers/trainer.py", line 931, in train
+    self, num_training_steps=max_steps, resume_from_checkpoint=resume_from_checkpoint
+  File "/opt/conda/lib/python3.6/site-packages/transformers/integrations.py", line 449, in init_deepspeed
+    lr_scheduler=lr_scheduler,
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/__init__.py", line 125, in initialize
+    config_params=config_params)
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/runtime/engine.py", line 183, in __init__
+    self._configure_optimizer(optimizer, model_parameters)
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/runtime/engine.py", line 598, in _configure_optimizer
+    basic_optimizer = self._configure_basic_optimizer(model_parameters)
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/runtime/engine.py", line 667, in _configure_basic_optimizer
+    adamw_mode=effective_adam_w_mode)
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/ops/adam/cpu_adam.py", line 78, in __init__
+    self.ds_opt_adam = CPUAdamBuilder().load()
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/ops/op_builder/builder.py", line 215, in load
+    assert_torch_info(torch_info)
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/ops/op_builder/builder.py", line 73, in assert_torch_info
+    current_cuda_version = ".".join(torch.version.cuda.split('.')[:2])
+AttributeError: 'NoneType' object has no attribute 'split'
+Traceback (most recent call last):
+  File "examples/seq2seq/run_translation.py", line 562, in <module>
+    main()
+  File "examples/seq2seq/run_translation.py", line 500, in main
+    train_result = trainer.train(resume_from_checkpoint=checkpoint)
+  File "/opt/conda/lib/python3.6/site-packages/transformers/trainer.py", line 931, in train
+    self, num_training_steps=max_steps, resume_from_checkpoint=resume_from_checkpoint
+  File "/opt/conda/lib/python3.6/site-packages/transformers/integrations.py", line 449, in init_deepspeed
+    lr_scheduler=lr_scheduler,
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/__init__.py", line 125, in initialize
+    config_params=config_params)
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/runtime/engine.py", line 183, in __init__
+    self._configure_optimizer(optimizer, model_parameters)
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/runtime/engine.py", line 598, in _configure_optimizer
+    basic_optimizer = self._configure_basic_optimizer(model_parameters)
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/runtime/engine.py", line 667, in _configure_basic_optimizer
+    adamw_mode=effective_adam_w_mode)
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/ops/adam/cpu_adam.py", line 78, in __init__
+    self.ds_opt_adam = CPUAdamBuilder().load()
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/ops/op_builder/builder.py", line 215, in load
+    assert_torch_info(torch_info)
+  File "/opt/conda/lib/python3.6/site-packages/deepspeed/ops/op_builder/builder.py", line 73, in assert_torch_info
+    current_cuda_version = ".".join(torch.version.cuda.split('.')[:2])
+AttributeError: 'NoneType' object has no attribute 'split'
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/opt/conda/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/opt/conda/lib/python3.6/site-packages/torch/distributed/launch.py", line 340, in <module>
+    main()
+  File "/opt/conda/lib/python3.6/site-packages/torch/distributed/launch.py", line 326, in main
+    sigkill_handler(signal.SIGTERM, None)  # not coming back
+  File "/opt/conda/lib/python3.6/site-packages/torch/distributed/launch.py", line 301, in sigkill_handler
+    raise subprocess.CalledProcessError(returncode=last_return_code, cmd=cmd)
+subprocess.CalledProcessError: Command '['/opt/conda/bin/python', '-u', 'examples/seq2seq/run_translation.py', '--local_rank=1', '--model_name_or_path', 't5-large', '--do_train', '--do_eval', '--source_lang', 'en', '--target_lang', 'ro', '--dataset_name', 'wmt16', '--dataset_config_name', 'ro-en', '--output_dir', '/tmp/tst-translation', '--per_device_train_batch_size=80', '--per_device_eval_batch_size=80', '--overwrite_output_dir', '--predict_with_generate', '--max_train_samples', '500', '--max_val_samples', '500', '--logging_steps', '1', '--deepspeed', 'scripts/amd/ds_config_cpu_offload_on.json']' returned non-zero exit status 1.
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+Killing subprocess 25
+Killing subprocess 26
