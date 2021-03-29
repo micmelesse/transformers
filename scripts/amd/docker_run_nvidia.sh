@@ -1,5 +1,5 @@
-alias drun='sudo docker run -it --network=host --runtime=nvidia --ipc=host -v $HOME/dockerx:/dockerx -v /data:/data'
+alias drun='sudo docker run -it --network=host --runtime=nvidia --ipc=host'
 
-WORK_DIR='/dockerx/transformers'
+# WORK_DIR=' -w /workpace/transformers'
 
-drun -w $WORK_DIR nvcr.io/nvidia/pytorch:20.08-py3
+drun $WORK_DIR huggingface_zero_nv:latest
