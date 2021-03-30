@@ -2,7 +2,7 @@ export BS=80
 echo "w/ --deepspeed ds_config.json (stage 2 with cpu offloading)"
 USE_TF=0 python -m torch.distributed.launch --nproc_per_node=2 \
     examples/seq2seq/run_translation.py \
-    --model_name_or_path t5-large \
+    --model_name_or_path t5-small \
     --do_train \
     --do_eval \
     --source_lang en \
